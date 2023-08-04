@@ -4,30 +4,18 @@
 // Package gamestate provides types to represent Shogi game state and methods to evolve it.
 package gamestate
 
-import "hifumi/internal/shogi/material"
-
-// Color can be Black or White.
-type Color struct {
-	value int
-}
-
-func (c Color) Int() int { return c.value }
-
-var (
-	Black = Color{0}
-	White = Color{1}
+import (
+	"github.com/vinymeuh/hifumi/internal/shogi/material"
 )
 
 // A Gamestate represents the state of a Shogi game.
 type Gamestate struct {
-	// Hands for each colors, in the order R, B, G, S, N, L, P (as in a SFEN string)
-	Hands [material.COLORS][]int
-	// HandsCount is a index usefull to know if a Hand is empty or not
-	HandsCount [material.COLORS]int
+	// Hand for each color
+	Hands [material.COLORS]material.Hand
 	// The mailbox representation of the Shogi board
-	Board material.Shogiban
+	Board material.Board
 	// Side to move
-	Side Color
+	Side material.Color
 	// Move count
 	Ply int
 }
@@ -36,15 +24,94 @@ type Gamestate struct {
 // Should rarely called directly, NewFromSfen is the constructor you are looking for.
 func New() *Gamestate {
 	g := Gamestate{
-		Board: material.Shogiban{},
-		Hands: [material.COLORS][]int{
-			{0, 0, 0, 0, 0, 0, 0},
-			{0, 0, 0, 0, 0, 0, 0},
+		Board: material.Board{},
+		Hands: [material.COLORS]material.Hand{
+			material.NewHand(material.Black),
+			material.NewHand(material.White),
 		},
-		HandsCount: [material.COLORS]int{0, 0},
-		Side:       Black,
-		Ply:        0,
+		Side: material.Black,
+		Ply:  0,
 	}
 
 	return &g
+}
+
+// ApplyMove updates Gamestate based on provided Move WITHOUT any rules check,
+// it is the responsability of the caller to provide a legal move.
+func (g *Gamestate) ApplyMove(m Move) {
+	flags, from, to, mPiece := m.GetAll()
+	switch flags {
+	case MoveFlagDrop:
+		piece := mPiece
+		g.setPiece(piece, to)
+		g.Hands[g.Side].Pop(piece)
+	case MoveFlagMove:
+		piece := g.Board[from]
+		g.clearPiece(piece, from)
+		g.setPiece(piece, to)
+	case MoveFlagMove | MoveFlagPromotion:
+		piece := g.Board[from]
+		g.clearPiece(piece, from)
+		g.setPiece(piece.Promote(), to)
+	case MoveFlagMove | MoveFlagCapture:
+		piece := g.Board[from]
+		captured := g.Board[to]
+		g.clearPiece(piece, from)
+		g.setPiece(piece, to)
+		g.Hands[g.Side].Push(captured.ToOpponentHand())
+	case MoveFlagMove | MoveFlagCapture | MoveFlagPromotion:
+		piece := g.Board[from]
+		captured := g.Board[to]
+		g.clearPiece(piece, from)
+		g.setPiece(piece.Promote(), to)
+		g.Hands[g.Side].Push(captured.ToOpponentHand())
+	case MoveFlagNull:
+	}
+
+	g.Ply++
+	g.Side = g.Side.Opponent()
+}
+
+// UnapplyMove updates position based on provided Move WITHOUT any rules check,
+// it is the responsability of the caller to provide a legal move.
+func (g *Gamestate) UnapplyMove(m Move) {
+	flags, from, to, mPiece := m.GetAll()
+	switch flags {
+	case MoveFlagDrop:
+		piece := mPiece
+		g.clearPiece(piece, to)
+		g.Hands[g.Side.Opponent()].Push(piece)
+	case MoveFlagMove:
+		piece := g.Board[to]
+		g.clearPiece(piece, to)
+		g.setPiece(piece, from)
+	case MoveFlagMove | MoveFlagPromotion:
+		piece := g.Board[to]
+		g.clearPiece(piece, to)
+		g.setPiece(piece.UnPromote(), from)
+	case MoveFlagMove | MoveFlagCapture:
+		piece := g.Board[to]
+		captured := mPiece
+		g.setPiece(piece, from)
+		g.setPiece(captured, to)
+		g.Hands[g.Side.Opponent()].Pop(captured.ToOpponentHand())
+	case MoveFlagMove | MoveFlagCapture | MoveFlagPromotion:
+		piece := g.Board[to]
+		captured := mPiece
+		g.setPiece(piece.UnPromote(), from)
+		g.setPiece(captured, to)
+		g.Hands[g.Side.Opponent()].Pop(captured.ToOpponentHand())
+	case MoveFlagNull:
+	}
+
+	g.Ply--
+	g.Side = g.Side.Opponent()
+}
+
+func (g *Gamestate) setPiece(piece material.Piece, sq material.Square) {
+	g.Board[sq] = piece
+}
+
+func (g *Gamestate) clearPiece(_ material.Piece, sq material.Square) {
+	g.Board[sq] = material.NoPiece
 }

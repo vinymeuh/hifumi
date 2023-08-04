@@ -4,10 +4,11 @@ package gamestate
 
 import (
 	"fmt"
-	"hifumi/internal/shogi/material"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/vinymeuh/hifumi/internal/shogi/material"
 )
 
 // StartPos is a SFEN string corresponding to the default Shogi starting position.
@@ -22,7 +23,7 @@ func NewFromSfen(sfen string) (*Gamestate, error) {
 	g := New()
 
 	// board state
-	if err := g.sfen_parse_board(fields[0]); err != nil {
+	if err := g.sfenParseBoard(fields[0]); err != nil {
 		return nil, err
 	}
 
@@ -30,14 +31,14 @@ func NewFromSfen(sfen string) (*Gamestate, error) {
 	switch fields[1] {
 	case "b":
 	case "w":
-		g.Side = White
+		g.Side = material.White
 	default:
 		return nil, fmt.Errorf("SFEN second part must be 'b' for black or 'w' for white")
 	}
 
 	// piece in Hands
 	if fields[2] != "-" {
-		if err := g.sfen_parse_hands(fields[2]); err != nil {
+		if err := g.sfenParseHands(fields[2]); err != nil {
 			return nil, err
 		}
 	}
@@ -61,8 +62,8 @@ func (g Gamestate) Sfen() string {
 	var sb strings.Builder
 
 	// board
-	var emptySquare = 0
-	for i := 0; i < material.SQUARES; i++ {
+	var emptySquare int
+	for i, k := range g.Board {
 		if i%material.FILES == 0 && i > 0 {
 			if emptySquare > 0 {
 				sb.WriteString(strconv.Itoa(emptySquare))
@@ -71,11 +72,9 @@ func (g Gamestate) Sfen() string {
 			sb.WriteString("/")
 		}
 
-		k := g.Board[i]
-		switch {
-		case k == material.NoPiece:
+		if k == material.NoPiece {
 			emptySquare++
-		default:
+		} else {
 			if emptySquare > 0 {
 				sb.WriteString(strconv.Itoa(emptySquare))
 				emptySquare = 0
@@ -86,23 +85,19 @@ func (g Gamestate) Sfen() string {
 
 	// side to move
 	switch g.Side {
-	case Black:
+	case material.Black:
 		sb.WriteString(" b ")
-	case White:
+	case material.White:
 		sb.WriteString(" w ")
 	}
 
 	// hands
 	switch {
-	case g.HandsCount[Black.Int()] == 0 && g.HandsCount[White.Int()] == 0:
+	case g.Hands[material.Black].Count == 0 && g.Hands[material.White].Count == 0:
 		sb.WriteString("-")
 	default:
-		if g.HandsCount[Black.Int()] > 0 {
-			g.sfen_print_hand(&sb, Black)
-		}
-		if g.HandsCount[White.Int()] > 0 {
-			g.sfen_print_hand(&sb, White)
-		}
+		g.Hands[material.Black].SfenString(&sb)
+		g.Hands[material.White].SfenString(&sb)
 	}
 
 	// move count
@@ -111,7 +106,7 @@ func (g Gamestate) Sfen() string {
 	return sb.String()
 }
 
-func (g *Gamestate) sfen_parse_board(str string) error {
+func (g *Gamestate) sfenParseBoard(str string) error {
 	for ch, sq := 0, 0; sq < material.SQUARES; ch, sq = ch+1, sq+1 {
 		token := string(str[ch])
 		switch {
@@ -132,7 +127,7 @@ func (g *Gamestate) sfen_parse_board(str string) error {
 			token += string(str[ch])
 			fallthrough
 		default:
-			k, err := material.NewKoma(token)
+			k, err := material.NewPiece(token)
 			if err != nil {
 				return fmt.Errorf("SFEN invalid character in board")
 			}
@@ -142,60 +137,20 @@ func (g *Gamestate) sfen_parse_board(str string) error {
 	return nil
 }
 
-func (g *Gamestate) sfen_parse_hands(txt string) error {
-	var hashmap = map[rune][]int{
-		'P': {0, 6},
-		'L': {0, 5},
-		'N': {0, 4},
-		'S': {0, 3},
-		'B': {0, 2},
-		'G': {0, 1},
-		'R': {0, 0},
-		'p': {1, 6},
-		'l': {1, 5},
-		'n': {1, 4},
-		's': {1, 3},
-		'b': {1, 2},
-		'g': {1, 1},
-		'r': {1, 0},
-	}
-
+func (g *Gamestate) sfenParseHands(txt string) error {
 	var n = 1
 	for _, ch := range txt {
 		switch {
 		case unicode.IsDigit(ch):
 			n, _ = strconv.Atoi(string(ch))
 		default:
-			if h, ok := hashmap[ch]; ok {
-				g.Hands[h[0]][h[1]] = n
-				g.HandsCount[h[0]] += n
+			p, err := material.NewPiece(string(ch))
+			if err == nil {
+				g.Hands[p.Color()].SetCount(p, n)
 			} else {
 				return fmt.Errorf("SFEN invalid character in hand")
 			}
 		}
 	}
 	return nil
-}
-
-func (g Gamestate) sfen_print_hand(sb *strings.Builder, c Color) {
-	var piecemap []string
-	switch c.Int() {
-	case 0:
-		piecemap = []string{"R", "B", "G", "S", "N", "L", "P"}
-	case 1:
-		piecemap = []string{"r", "b", "g", "s", "n", "l", "p"}
-	}
-
-	for i, n := range g.Hands[c.Int()] {
-		switch {
-		case n == 0:
-			continue
-		case n > 1:
-			sb.WriteString(strconv.Itoa(n))
-			fallthrough
-		default:
-			k, _ := material.NewKoma(piecemap[i])
-			sb.WriteString(k.String())
-		}
-	}
 }

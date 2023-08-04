@@ -2,17 +2,21 @@
 // SPDX-License-Identifier: MIT
 package material
 
+import "fmt"
+
 const (
 	FILES   = 9
 	RANKS   = 9
 	SQUARES = FILES * RANKS
 )
 
+// A File represents a Shogiban file.
 type File uint
 
+// A Rank's represents a Shogiban rank.
 type Rank uint
 
-// A Square represents a Shogiban cell's coordinates.
+// A Square represents the coordiantes of a Shogiban cell.
 // Valid values are from 0 to 80.
 type Square uint
 
@@ -100,5 +104,16 @@ const (
 	SQ1i
 )
 
-// A Shogiban is an array of Koma with first element corresponds to Square "9a".
-type Shogiban [SQUARES]Koma
+// NewSquareFromString creates a new Square from an USI coordinate string.
+func NewSquareFromString(s string) Square {
+	file := int(byte('9') - s[0])
+	rank := int(byte(s[1]) - 'a')
+	return Square(rank*RANKS + file)
+}
+
+// String returns the coordinates of the square as a USI string.
+func (s Square) String() string {
+	file := s % FILES
+	rank := s / FILES
+	return fmt.Sprintf("%c%c", byte('9'-file), byte('a'+rank))
+}
