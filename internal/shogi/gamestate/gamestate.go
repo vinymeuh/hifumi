@@ -5,8 +5,11 @@
 package gamestate
 
 import (
+	"github.com/vinymeuh/hifumi/internal/shogi/bitboard"
 	"github.com/vinymeuh/hifumi/internal/shogi/material"
 )
+
+type Bitboard = bitboard.Bitboard
 
 // A Gamestate represents the state of a Shogi game.
 type Gamestate struct {
@@ -18,6 +21,8 @@ type Gamestate struct {
 	Side material.Color
 	// Move count
 	Ply int
+	// Bitboards of pieces by color
+	BBbyColor [material.COLORS]Bitboard
 }
 
 // New creates an empty Gamestate with no pieces on the board or in the hands.
@@ -29,8 +34,9 @@ func New() *Gamestate {
 			material.NewHand(material.Black),
 			material.NewHand(material.White),
 		},
-		Side: material.Black,
-		Ply:  0,
+		Side:      material.Black,
+		Ply:       0,
+		BBbyColor: [material.COLORS]Bitboard{{}, {}},
 	}
 
 	return &g
@@ -110,8 +116,10 @@ func (g *Gamestate) UnapplyMove(m Move) {
 
 func (g *Gamestate) setPiece(piece material.Piece, sq material.Square) {
 	g.Board[sq] = piece
+	g.BBbyColor[piece.Color()] = g.BBbyColor[piece.Color()].SetBit(sq)
 }
 
-func (g *Gamestate) clearPiece(_ material.Piece, sq material.Square) {
+func (g *Gamestate) clearPiece(piece material.Piece, sq material.Square) {
 	g.Board[sq] = material.NoPiece
+	g.BBbyColor[piece.Color()] = g.BBbyColor[piece.Color()].ClearBit(sq)
 }

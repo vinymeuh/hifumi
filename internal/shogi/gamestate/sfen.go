@@ -20,9 +20,9 @@ func NewFromSfen(sfen string) (*Gamestate, error) {
 	if len(fields) < 3 || len(fields) > 4 {
 		return nil, fmt.Errorf("SFEN string must have between 3 and 4 parts")
 	}
-	g := New()
 
 	// board state
+	g := New()
 	if err := g.sfenParseBoard(fields[0]); err != nil {
 		return nil, err
 	}
@@ -115,13 +115,11 @@ func (g *Gamestate) sfenParseBoard(str string) error {
 		case strings.Contains("123456789", token): //nolint:gocritic
 			n, _ := strconv.Atoi(token)
 			sq += n - 1
-			// continue
 		case token == "/":
 			sq-- // move back current square counter as '/' does not represent a square
 			if sq%material.FILES != 0 {
 				sq = material.FILES*((sq+material.FILES)/material.FILES) - 1
 			}
-			// continue
 		case token == "+":
 			ch++
 			token += string(str[ch])
@@ -131,7 +129,7 @@ func (g *Gamestate) sfenParseBoard(str string) error {
 			if err != nil {
 				return fmt.Errorf("SFEN invalid character in board")
 			}
-			g.Board[sq] = k
+			g.setPiece(k, material.Square(sq))
 		}
 	}
 	return nil
