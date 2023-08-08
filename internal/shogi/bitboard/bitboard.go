@@ -34,13 +34,13 @@ func (b Bitboard) String() string {
 func (b Bitboard) StringBoard() string {
 	var board string
 	for i := 0; i < material.SQUARES; i++ {
+		if i != 0 && i%9 == 0 {
+			board += "\n"
+		}
 		if b.GetBit(material.Square(i)) == 1 {
 			board += "1"
 		} else {
 			board += "0"
-		}
-		if i%9 == 0 {
-			board += "\n"
 		}
 	}
 	return board

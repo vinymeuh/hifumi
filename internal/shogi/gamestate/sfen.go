@@ -89,6 +89,8 @@ func (g Gamestate) Sfen() string {
 		sb.WriteString(" b ")
 	case material.White:
 		sb.WriteString(" w ")
+	case material.NoColor:
+		sb.WriteString(" ? ")
 	}
 
 	// hands

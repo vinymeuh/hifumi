@@ -16,7 +16,7 @@ type File uint
 // A Rank's represents a Shogiban rank.
 type Rank uint
 
-// A Square represents the coordiantes of a Shogiban cell.
+// A Square represents the coordinates of a Shogiban cell.
 // Valid values are from 0 to 80.
 type Square uint
 

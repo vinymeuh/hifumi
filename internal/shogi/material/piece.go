@@ -7,31 +7,35 @@ package material
 import "fmt"
 
 const (
-	COLORS = 2
-	PIECES = 14
+	COLORS      = 2
+	PIECE_TYPES = 14
 )
 
 // Color represents the color of a piece, can be Black or White.
-type Color uint
+type Color int
 
 const (
-	Black Color = iota
+	NoColor Color = iota - 1
+	Black
 	White
 )
 
 // Opponent returns the opponent's color.
 func (c Color) Opponent() Color {
-	if c == Black {
+	switch c { //nolint:exhaustive
+	case Black:
 		return White
+	case White:
+		return Black
 	}
-	return Black
+	panic("Opponent() can be only called for Black or White")
 }
 
 // A Piece is a colorized shogi piece, e.g., a black pawn or a white bishop, or NoPiece.
-type Piece uint
+type Piece int
 
 const (
-	NoPiece Piece = iota
+	NoPiece Piece = iota - 1
 	BlackPawn
 	BlackLance
 	BlackKnight
@@ -83,6 +87,9 @@ func (p Piece) Color() Color {
 
 // String returns the USI string representation of a Piece or an empty string for NoPiece.
 func (p Piece) String() string {
+	if p == NoPiece {
+		return ""
+	}
 	return slugPiece2string[p]
 }
 
@@ -145,7 +152,6 @@ func init() {
 	}
 
 	slugPiece2string = []string{
-		"",
 		"P", "L", "N", "S", "G", "B", "R", "K", "+P", "+L", "+N", "+S", "+B", "+R",
 		"p", "l", "n", "s", "g", "b", "r", "k", "+p", "+l", "+n", "+s", "+b", "+r",
 	}
