@@ -5,20 +5,20 @@ package material
 import "fmt"
 
 const (
-	FILES   = 9
-	RANKS   = 9
+	FILES   = 9 // vertical lines
+	RANKS   = 9 // horizontal lines
 	SQUARES = FILES * RANKS
 )
 
 // A File represents a Shogiban file.
-type File uint
+type File int
 
 // A Rank's represents a Shogiban rank.
-type Rank uint
+type Rank int
 
 // A Square represents the coordinates of a Shogiban cell.
 // Valid values are from 0 to 80.
-type Square uint
+type Square int
 
 const (
 	SQ9a Square = iota

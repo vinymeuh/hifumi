@@ -7,6 +7,7 @@ import (
 
 	"github.com/vinymeuh/hifumi/internal/shogi/gamestate"
 	"github.com/vinymeuh/hifumi/internal/shogi/material"
+	_ "github.com/vinymeuh/hifumi/internal/shogi/movegen"
 )
 
 func main() {

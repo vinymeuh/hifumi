@@ -10,24 +10,22 @@ import (
 )
 
 // A Bitboard is a binary representation that encodes all the squares on the board.
-// The 81 squares of a Shogiban are divided into three chunks, each chunk holding 27 squares.
+// The 81 squares of a Shogiban are divided into two chunks.
 type Bitboard struct {
-	Chunk [3]uint // chunk0=SQ9a to SQ1c, chunk1=SQ9d to SQ1f, 2=SQ9g to SQ1i
+	Low  uint64 //
+	High uint64
 }
 
 const (
-	chunkSize      = 27
-	chunkMask uint = 0x7FFFFFF // use only the 27 least significant bits of each chunks.
+	highMask = 0x1FFFF // use only the 17 least significant bits of high.
 )
 
-// NewBitboard returns a new zero-valued Bitboard.
-func NewBitboard() Bitboard {
-	return Bitboard{[3]uint{0, 0, 0}}
-}
+// Zero represents the zero value of a Bitboard.
+var Zero = Bitboard{0, 0}
 
 // String returns the string representation of a Bitboard.
 func (b Bitboard) String() string {
-	return fmt.Sprintf("%027b%027b%027b", b.Chunk[2], b.Chunk[1], b.Chunk[0])
+	return fmt.Sprintf("%017b%064b", b.High, b.Low)
 }
 
 // StringBoard returns the representation of a Bitboard as a Shogi board string.
@@ -48,67 +46,108 @@ func (b Bitboard) StringBoard() string {
 
 // SetBit returns a new Bitboard with the bit at the given square set to 1.
 func (b Bitboard) SetBit(sq material.Square) Bitboard {
-	c, n := divmod(sq, chunkSize)
-	b.Chunk[c] |= (1 << n)
-	return b
+	mask := squareSetMask[sq]
+	return Bitboard{
+		b.Low | mask.Low,
+		b.High | mask.High,
+	}
 }
 
 // ClearBit returns a new Bitboard with the bit at the given square set to 0.
 func (b Bitboard) ClearBit(sq material.Square) Bitboard {
-	c, n := divmod(sq, chunkSize)
-	b.Chunk[c] &^= (1 << n)
-	return b
+	mask := squareSetMask[sq]
+	return Bitboard{
+		b.Low &^ mask.Low,
+		b.High &^ mask.High,
+	}
 }
 
 // GetBit returns the value of the bit at the given square.
 func (b Bitboard) GetBit(sq material.Square) uint {
-	c, n := divmod(sq, chunkSize)
-	return (b.Chunk[c] >> n) & 1
+	if sq < 64 {
+		return uint((b.Low >> sq) & 1)
+	}
+	return uint((b.High >> uint(sq-64)) & 1)
 }
 
-// Not returns a new Bitboard with the bitwise NOT operation applied.
-func (b Bitboard) Not() Bitboard {
-	return Bitboard{
-		Chunk: [3]uint{
-			(^b.Chunk[0]) & chunkMask,
-			(^b.Chunk[1]) & chunkMask,
-			(^b.Chunk[2]) & chunkMask,
-		},
-	}
+// PopCount return the bit population count.
+func (b Bitboard) PopCount() uint {
+	return popcount64(b.Low) + popcount64(b.High)
 }
 
-// Lsb returns the index of the first bit that is turned on from the LSB side.
-func (b Bitboard) Lsb() int {
-	for i, chunk := range b.Chunk {
-		if chunk > 0 {
-			return i*chunkSize + int(math.Log2(float64(chunk&-chunk)))
-		}
-	}
-	return -1
+func popcount64(x uint64) uint { // From https://github.com/golang/go/issues/4988#c11
+	x -= (x >> 1) & 0x5555555555555555
+	x = (x>>2)&0x3333333333333333 + x&0x3333333333333333
+	x += x >> 4
+	x &= 0x0f0f0f0f0f0f0f0f
+	x *= 0x0101010101010101
+	return uint(x >> 56)
 }
 
 // And returns a new Bitboard with the bitwise AND operation applied.
 func (b Bitboard) And(other Bitboard) Bitboard {
 	return Bitboard{
-		Chunk: [3]uint{
-			b.Chunk[0] & other.Chunk[0],
-			b.Chunk[1] & other.Chunk[1],
-			b.Chunk[2] & other.Chunk[2],
-		},
+		b.Low & other.Low,
+		b.High & other.High,
 	}
 }
 
 // Or returns a new Bitboard with the bitwise OR operation applied.
 func (b Bitboard) Or(other Bitboard) Bitboard {
 	return Bitboard{
-		Chunk: [3]uint{
-			b.Chunk[0] | other.Chunk[0],
-			b.Chunk[1] | other.Chunk[1],
-			b.Chunk[2] | other.Chunk[2],
-		},
+		b.Low | other.Low,
+		b.High | other.High,
+	}
+
+}
+
+// Not returns a new Bitboard with the bitwise NOT operation applied.
+func (b Bitboard) Not() Bitboard {
+	return Bitboard{
+		^b.Low,
+		^b.High & highMask,
 	}
 }
 
-func divmod(sq material.Square, d uint) (uint, uint) {
-	return uint(sq) / d, uint(sq) % d
+// Lsb returns the index of the first bit that is turned on from the LSB side.
+func (b Bitboard) Lsb() int {
+	if b.Low > 0 {
+		return int(math.Log2(float64(b.Low & -b.Low)))
+	}
+	if b.High > 0 {
+		return 64 + int(math.Log2(float64(b.High&-b.High)))
+	}
+	return -1
+}
+
+// RShift returns a new Bitboard right shifted to n bits.
+func (b Bitboard) RShift(n uint) Bitboard {
+	if n < 17 {
+		return Bitboard{
+			(b.Low >> n) | ((b.High << (64 - 17)) << (17 - n)),
+			(b.High >> n),
+		}
+	} else if n >= 17 && n < 81 {
+		return Bitboard{
+			(b.Low >> n) | ((b.High << (64 - 17)) << (17 - n)),
+			0,
+		}
+	}
+	return Zero
+}
+
+// Mul returns a new Bitboard equals to the product of the two.
+func (b Bitboard) Merge() uint64 {
+	return b.Low | b.High
+}
+
+var squareSetMask = [material.SQUARES]Bitboard{}
+
+func init() {
+	for i := 0; i < 64; i++ {
+		squareSetMask[i] = Bitboard{1 << i, 0}
+	}
+	for i := 0; i < 17; i++ {
+		squareSetMask[64+i] = Bitboard{0, 1 << i}
+	}
 }

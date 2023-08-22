@@ -3,6 +3,7 @@
 package gamestate
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -66,6 +67,11 @@ func (m Move) GetAll() (uint, material.Square, material.Square, material.Piece) 
 	to := m.To()
 	piece := m.Piece()
 	return flags, from, to, piece
+}
+
+// String returns the move as a USI string.
+func (m Move) String() string {
+	return fmt.Sprintf("%s%s", m.From().String(), m.To().String())
 }
 
 // NewMoveFromUsi creates a new Move from a USI move string.
