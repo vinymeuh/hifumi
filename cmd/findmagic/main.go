@@ -22,34 +22,34 @@ func printUsageAndExit() {
 // https://github.com/maksimKorzh/chess_programming/blob/master/src/magics/magics.c
 // https://stackoverflow.com/questions/30680559/how-to-find-magic-bitboards
 
-func findMagic(sq material.Square, mask bitboard.Bitboard, attacks_func movegen.GenerateAttacksWithBlockersFn) uint64 {
-	relevant_bits := mask.PopCount()
-	shift := 64 - relevant_bits // 64 because used to shift Magic which is a uint64
+func findMagic(sq material.Square, mask bitboard.Bitboard, attacksFunc movegen.GenerateAttacksWithBlockersFunc) uint64 {
+	relevantBits := mask.PopCount()
+	shift := 64 - relevantBits // 64 because used to shift Magic which is a uint64
 
 	attacks := [4096]bitboard.Bitboard{}
 	occupancy := [4096]bitboard.Bitboard{}
 
 	// loop over occupancy variations
-	occupancy_variations := uint(1) << relevant_bits
-	for variation := uint(0); variation < occupancy_variations; variation++ {
+	occupancyVariations := uint(1) << relevantBits
+	for variation := uint(0); variation < occupancyVariations; variation++ {
 		occupancy[variation] = movegen.GenerateOccupancy(variation, mask)
-		attacks[variation] = attacks_func(sq, occupancy[variation])
+		attacks[variation] = attacksFunc(sq, occupancy[variation])
 	}
 
 	// test magic numbers
-	for test_count := 0; test_count < 100000; test_count++ {
+	for testCount := 0; testCount < 100000; testCount++ {
 		magic := rand.Uint64() & rand.Uint64() & rand.Uint64()
 
 		// test magic index
-		indexed_attacks := [4096]bitboard.Bitboard{}
+		indexedAttacks := [4096]bitboard.Bitboard{}
 		fail := false
-		for variation := uint(0); !fail && variation < occupancy_variations; variation++ {
+		for variation := uint(0); !fail && variation < occupancyVariations; variation++ {
 			bb := occupancy[variation]
 			index := movegen.MagicIndex(bb, magic, shift)
 
-			if indexed_attacks[index] == bitboard.Zero { // new indexation
-				indexed_attacks[index] = attacks[variation]
-			} else if indexed_attacks[index] != attacks[variation] { // collision: index already used for another attacks map
+			if indexedAttacks[index] == bitboard.Zero { // new indexation
+				indexedAttacks[index] = attacks[variation]
+			} else if indexedAttacks[index] != attacks[variation] { // collision: index already used for another attacks map
 				fail = true
 			}
 		}

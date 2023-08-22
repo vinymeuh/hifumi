@@ -10,6 +10,8 @@ import (
 	"github.com/vinymeuh/hifumi/internal/shogi/material"
 )
 
+const fatalfFormat = "\nexpected=%s\n     got=%s"
+
 func TestString(t *testing.T) {
 	tests := []struct { //nolint:govet
 		bb       [2]uint64 // high, low
@@ -25,7 +27,7 @@ func TestString(t *testing.T) {
 		t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
 			bb := Bitboard{tc.bb[1], tc.bb[0]}.String()
 			if tc.expected != bb {
-				t.Fatalf("\nexpected=%s\n     got=%s", tc.expected, bb)
+				t.Fatalf(fatalfFormat, tc.expected, bb)
 			}
 		})
 	}
@@ -54,9 +56,9 @@ func TestGetBit(t *testing.T) {
 				inGet1 := slices.Contains(tc.gets1, j)
 				switch {
 				case inGet1 && v == 0:
-					t.Fatalf("sq=%d, expected=1; got=0\n", j)
+					t.Fatalf(fatalfFormat, "1", "0")
 				case !inGet1 && v == 1:
-					t.Fatalf("sq=%d, expected=0, got=1\n", j)
+					t.Fatalf(fatalfFormat, "0", "1")
 				}
 			})
 		}
@@ -83,7 +85,7 @@ func TestNot(t *testing.T) {
 			bb := Bitboard{tc.bb[1], tc.bb[0]}.Not()
 			expected := Bitboard{tc.expected[1], tc.expected[0]}
 			if expected != bb {
-				t.Fatalf("\nexpected=%s\n     got=%s", expected, bb)
+				t.Fatalf(fatalfFormat, expected, bb)
 			}
 		})
 	}
@@ -111,14 +113,14 @@ func TestAndOr(t *testing.T) {
 			bb := bb1.And(bb2)
 			expected := Bitboard{tc.and[1], tc.and[0]}
 			if expected != bb {
-				t.Fatalf("\nexpected=%s\n     got=%s", expected, bb)
+				t.Fatalf(fatalfFormat, expected, bb)
 			}
 		})
 		t.Run(fmt.Sprintf("TestCase %02d Or", i+1), func(t *testing.T) {
 			bb := bb1.Or(bb2)
 			expected := Bitboard{tc.or[1], tc.or[0]}
 			if expected != bb {
-				t.Fatalf("\nexpected=%s\n     got=%s", expected, bb)
+				t.Fatalf(fatalfFormat, expected, bb)
 			}
 		})
 	}
@@ -159,7 +161,7 @@ func TestLsb(t *testing.T) {
 		t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
 			lsb := Bitboard{tc.bb[1], tc.bb[0]}.Lsb()
 			if tc.expected != lsb {
-				t.Fatalf("\nexpected=%d\n     got=%d", tc.expected, lsb)
+				t.Fatalf(fatalfFormat, fmt.Sprint(tc.expected), fmt.Sprint(lsb))
 			}
 		})
 	}
@@ -189,7 +191,7 @@ func TestRShift(t *testing.T) {
 			bb := Bitboard{tc.bb[1], tc.bb[0]}.RShift(tc.shift)
 			expected := Bitboard{tc.expected[1], tc.expected[0]}
 			if expected != bb {
-				t.Fatalf("\nexpected=%s\n     got=%s", expected, bb)
+				t.Fatalf(fatalfFormat, expected, bb)
 			}
 		})
 	}

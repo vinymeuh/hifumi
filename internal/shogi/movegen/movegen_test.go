@@ -9,13 +9,13 @@ import (
 	"github.com/vinymeuh/hifumi/internal/shogi/gamestate"
 )
 
-type generateMovesFn func(gs *gamestate.Gamestate, list *MoveList)
+type generateMovesFunc func(gs *gamestate.Gamestate, list *MoveList)
 
-func testRun(t *testing.T, startPos string, expected []string, generate_func generateMovesFn) {
+func testRun(t *testing.T, startPos string, expected []string, generateFunc generateMovesFunc) {
 	t.Run(startPos, func(t *testing.T) {
 		gs, _ := gamestate.NewFromSfen(startPos)
 		var list MoveList
-		generate_func(gs, &list)
+		generateFunc(gs, &list)
 
 		slices.Sort(expected)
 

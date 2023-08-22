@@ -19,34 +19,34 @@ type MagicEntry struct {
 type MagicTable [material.SQUARES]MagicEntry
 
 // Init intializes a MagicTable with pre-computed magic numbers.
-func (mt *MagicTable) Init(magics [material.SQUARES]uint64, mask_func GenerateMaskAttacksFn, attacks_func GenerateAttacksWithBlockersFn) {
+func (mt *MagicTable) Init(magics [material.SQUARES]uint64, maskFunc GenerateMaskAttacksFunc, attacksFunc GenerateAttacksWithBlockersFunc) {
 	for sq := material.Square(0); sq < material.SQUARES; sq++ {
-		mask := mask_func(sq)
-		relevant_bits := mask.PopCount()
+		mask := maskFunc(sq)
+		relevantBits := mask.PopCount()
 
 		me := MagicEntry{
 			Attacks: make([]bitboard.Bitboard, 4096), // FIXME
 			Mask:    mask,
 			Magic:   magics[sq],
-			Shift:   64 - relevant_bits,
+			Shift:   64 - relevantBits,
 		}
 
-		occupancy_variations := uint(1) << relevant_bits
-		for variation := uint(0); variation < occupancy_variations; variation++ {
+		occupancyVariations := uint(1) << relevantBits
+		for variation := uint(0); variation < occupancyVariations; variation++ {
 			occupancy := GenerateOccupancy(variation, me.Mask)
 			index := MagicIndex(occupancy, me.Magic, me.Shift)
-			me.Attacks[index] = attacks_func(sq, occupancy)
+			me.Attacks[index] = attacksFunc(sq, occupancy)
 		}
 
 		mt[sq] = me
 	}
 }
 
-// GenerateMaskAttacksFn is a function type to generate masks of possible attacks for a square.
-type GenerateMaskAttacksFn func(sq material.Square) bitboard.Bitboard
+// GenerateMaskAttacksFunc is a function type to generate masks of possible attacks for a square.
+type GenerateMaskAttacksFunc func(sq material.Square) bitboard.Bitboard
 
 // GenerateAttacksWithBlockersFn is a function type to generate attacks with blockers for a square.
-type GenerateAttacksWithBlockersFn func(sq material.Square, blockers bitboard.Bitboard) bitboard.Bitboard
+type GenerateAttacksWithBlockersFunc func(sq material.Square, blockers bitboard.Bitboard) bitboard.Bitboard
 
 // GenerateOccupancy computes all occupancy bitboards for a given magic index.
 func GenerateOccupancy(index uint, mask bitboard.Bitboard) bitboard.Bitboard {
