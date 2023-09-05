@@ -2,19 +2,15 @@
 // SPDX-License-Identifier: MIT
 package material
 
-import "fmt"
-
-const (
-	FILES   = 9 // vertical lines
-	RANKS   = 9 // horizontal lines
-	SQUARES = FILES * RANKS
+import (
+	"fmt"
 )
 
-// A File represents a Shogiban file.
-type File int
-
-// A Rank's represents a Shogiban rank.
-type Rank int
+const (
+	FILES   = 9 // Number of vertical lines
+	RANKS   = 9 // Number of horizontal lines
+	SQUARES = FILES * RANKS
+)
 
 // A Square represents the coordinates of a Shogiban cell.
 // Valid values are from 0 to 80.
@@ -116,4 +112,32 @@ func (s Square) String() string {
 	file := s % FILES
 	rank := s / FILES
 	return fmt.Sprintf("%c%c", byte('9'-file), byte('a'+rank))
+}
+
+var square2file = []int{
+	9, 8, 7, 6, 5, 4, 3, 2, 1,
+	9, 8, 7, 6, 5, 4, 3, 2, 1,
+	9, 8, 7, 6, 5, 4, 3, 2, 1,
+	9, 8, 7, 6, 5, 4, 3, 2, 1,
+	9, 8, 7, 6, 5, 4, 3, 2, 1,
+	9, 8, 7, 6, 5, 4, 3, 2, 1,
+	9, 8, 7, 6, 5, 4, 3, 2, 1,
+	9, 8, 7, 6, 5, 4, 3, 2, 1,
+	9, 8, 7, 6, 5, 4, 3, 2, 1,
+}
+
+// File returns the file number of the square.
+func (s Square) File() int {
+	if s >= 0 && s < SQUARES {
+		return square2file[s]
+	}
+	return 0
+}
+
+// IsOnTheEdge returns true is the square is on the edge of the board.
+func (s Square) IsOnTheEdge() bool {
+	if s <= SQ1a || s >= SQ9i || s%FILES <= 1 {
+		return true
+	}
+	return false
 }

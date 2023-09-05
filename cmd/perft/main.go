@@ -22,7 +22,6 @@ func main() {
 	if len(os.Args) > 2 {
 		printUsageAndExit()
 	}
-	movegen.Init()
 
 	depth := 1
 	sfen := gamestate.StartPos

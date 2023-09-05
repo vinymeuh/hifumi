@@ -44,7 +44,7 @@ const (
 	BlackBishop
 	BlackRook
 	BlackKing
-	BlackPromtotedPawn
+	BlackPromotedPawn
 	BlackPromotedLance
 	BlackPromotedKnight
 	BlackPromotedSilver
@@ -58,7 +58,7 @@ const (
 	WhiteBishop
 	WhiteRook
 	WhiteKing
-	WhitePromtotedPawn
+	WhitePromotedPawn
 	WhitePromotedLance
 	WhitePromotedKnight
 	WhitePromotedSilver
@@ -129,7 +129,7 @@ func init() {
 		"B":  BlackBishop,
 		"R":  BlackRook,
 		"K":  BlackKing,
-		"+P": BlackPromtotedPawn,
+		"+P": BlackPromotedPawn,
 		"+L": BlackPromotedLance,
 		"+N": BlackPromotedKnight,
 		"+S": BlackPromotedSilver,
@@ -143,7 +143,7 @@ func init() {
 		"b":  WhiteBishop,
 		"r":  WhiteRook,
 		"k":  WhiteKing,
-		"+p": WhitePromtotedPawn,
+		"+p": WhitePromotedPawn,
 		"+l": WhitePromotedLance,
 		"+n": WhitePromotedKnight,
 		"+s": WhitePromotedSilver,
@@ -157,13 +157,13 @@ func init() {
 	}
 
 	promote = map[Piece]Piece{
-		BlackPawn:   BlackPromtotedPawn,
+		BlackPawn:   BlackPromotedPawn,
 		BlackLance:  BlackPromotedLance,
 		BlackKnight: BlackPromotedKnight,
 		BlackSilver: BlackPromotedSilver,
 		BlackBishop: BlackPromotedBishop,
 		BlackRook:   BlackPromotedRook,
-		WhitePawn:   WhitePromtotedPawn,
+		WhitePawn:   WhitePromotedPawn,
 		WhiteLance:  WhitePromotedLance,
 		WhiteKnight: WhitePromotedKnight,
 		WhiteSilver: WhitePromotedSilver,
@@ -172,13 +172,13 @@ func init() {
 	}
 
 	unpromote = map[Piece]Piece{
-		BlackPromtotedPawn:  BlackPawn,
+		BlackPromotedPawn:   BlackPawn,
 		BlackPromotedLance:  BlackLance,
 		BlackPromotedKnight: BlackKnight,
 		BlackPromotedSilver: BlackSilver,
 		BlackPromotedBishop: BlackBishop,
 		BlackPromotedRook:   BlackRook,
-		WhitePromtotedPawn:  WhitePawn,
+		WhitePromotedPawn:   WhitePawn,
 		WhitePromotedLance:  WhiteLance,
 		WhitePromotedKnight: WhiteKnight,
 		WhitePromotedSilver: WhiteSilver,
@@ -194,7 +194,7 @@ func init() {
 		BlackGold:           WhiteGold,
 		BlackBishop:         WhiteBishop,
 		BlackRook:           WhiteRook,
-		BlackPromtotedPawn:  WhitePawn,
+		BlackPromotedPawn:   WhitePawn,
 		BlackPromotedLance:  WhiteLance,
 		BlackPromotedKnight: WhiteKnight,
 		BlackPromotedSilver: WhiteSilver,
@@ -207,7 +207,7 @@ func init() {
 		WhiteGold:           BlackGold,
 		WhiteBishop:         BlackBishop,
 		WhiteRook:           BlackRook,
-		WhitePromtotedPawn:  BlackPawn,
+		WhitePromotedPawn:   BlackPawn,
 		WhitePromotedLance:  BlackLance,
 		WhitePromotedKnight: BlackKnight,
 		WhitePromotedSilver: BlackSilver,
