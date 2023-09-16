@@ -16,10 +16,11 @@ func NewAttacksTable(shifts []Shift) AttacksTable {
 	for sq := material.Square(0); sq < material.SQUARES; sq++ {
 		bb := bitboard.Zero
 		for _, shift := range shifts {
-			newsq := shift.From(sq)
-			if newsq != -1 {
-				bb = bb.SetBit(newsq)
+			newsq, err := shift.From(sq)
+			if err != nil {
+				continue
 			}
+			bb = bb.SetBit(newsq)
 		}
 		at[sq] = bb
 	}
@@ -94,7 +95,8 @@ var (
 	// BlackPawn
 	BlackPawnMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{north: 1}}),
+			{Rank: North},
+		}),
 		PromoteFunc: func(_, to material.Square) (can, must bool) {
 			switch {
 			case to <= material.SQ1c && to > material.SQ1a:
@@ -111,7 +113,8 @@ var (
 	// WhitePawn
 	WhitePawnMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{south: 1}}),
+			{Rank: South},
+		}),
 		PromoteFunc: func(_, to material.Square) (can, must bool) {
 			switch {
 			case to >= material.SQ9g && to < material.SQ9a:
@@ -128,8 +131,9 @@ var (
 	// BlackKnight
 	BlackKnightMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{north: 2, east: 1},
-			{north: 2, west: 1}}),
+			{Rank: 2 * North, File: East},
+			{Rank: 2 * North, File: West},
+		}),
 		PromoteFunc: func(_, to material.Square) (can, must bool) {
 			switch {
 			case to <= material.SQ1c && to > material.SQ1b:
@@ -146,8 +150,9 @@ var (
 	// WhiteKnight
 	WhiteKnightMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{south: 2, east: 1},
-			{south: 2, west: 1}}),
+			{Rank: 2 * South, File: East},
+			{Rank: 2 * South, File: West},
+		}),
 		PromoteFunc: func(_, to material.Square) (can, must bool) {
 			switch {
 			case to >= material.SQ9g && to < material.SQ9h:
@@ -164,11 +169,12 @@ var (
 	// BlackSilver
 	BlackSilverMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{north: 1, west: 1},
-			{north: 1},
-			{north: 1, east: 1},
-			{south: 1, west: 1},
-			{south: 1, east: 1}}),
+			{Rank: North, File: West},
+			{Rank: North},
+			{Rank: North, File: East},
+			{Rank: South, File: West},
+			{Rank: South, File: East},
+		}),
 		PromoteFunc: func(from, to material.Square) (can, must bool) {
 			switch {
 			case (from <= material.SQ1c && from > material.SQ1b) || (to <= material.SQ1c && to > material.SQ1b):
@@ -182,11 +188,12 @@ var (
 	// WhiteSilver
 	WhiteSilverMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{north: 1, west: 1},
-			{north: 1, east: 1},
-			{south: 1, west: 1},
-			{south: 1},
-			{south: 1, east: 1}}),
+			{Rank: North, File: West},
+			{Rank: North, File: East},
+			{Rank: South, File: West},
+			{Rank: South},
+			{Rank: South, File: East},
+		}),
 		PromoteFunc: func(from, to material.Square) (can, must bool) {
 			switch {
 			case (from >= material.SQ9g && from < material.SQ9a) || (to >= material.SQ9g && to < material.SQ9a):
@@ -200,58 +207,63 @@ var (
 	// BlackGold
 	BlackGoldMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{north: 1, west: 1},
-			{north: 1},
-			{north: 1, east: 1},
-			{west: 1},
-			{south: 1},
-			{east: 1}}),
+			{Rank: North, File: West},
+			{Rank: North},
+			{Rank: North, File: East},
+			{File: West},
+			{Rank: South},
+			{File: East},
+		}),
 		PromoteFunc: func(_, _ material.Square) (can, must bool) { return },
 	}
 
 	// WhiteGold
 	WhiteGoldMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{north: 1},
-			{west: 1},
-			{east: 1},
-			{south: 1, west: 1},
-			{south: 1},
-			{south: 1, east: 1}}),
+			{Rank: North},
+			{File: West},
+			{File: East},
+			{Rank: South, File: West},
+			{Rank: South},
+			{Rank: South, File: East},
+		}),
 		PromoteFunc: func(_, _ material.Square) (can, must bool) { return },
 	}
 
 	// Kings
 	KingMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{north: 1, west: 1},
-			{north: 1},
-			{north: 1, east: 1},
-			{west: 1},
-			{east: 1},
-			{south: 1},
-			{south: 1, west: 1},
-			{south: 1, east: 1}}),
+			{Rank: North, File: West},
+			{Rank: North},
+			{Rank: North, File: East},
+			{File: West},
+			{File: East},
+			{Rank: South},
+			{Rank: South, File: West},
+			{Rank: South, File: East},
+		}),
 		PromoteFunc: func(_, _ material.Square) (can, must bool) { return },
 	}
 
 	// PromotedBishops (additional moves)
 	PromotedBishopMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{north: 1},
-			{west: 1},
-			{east: 1},
-			{south: 1}}),
+			{Rank: North},
+			{File: West},
+			{File: East},
+			{Rank: South},
+		}),
 		PromoteFunc: func(_, _ material.Square) (can, must bool) { return },
 	}
 
 	// PromotedRooks (additional moves)
 	PromotedRookMoveRules = PieceMoveRules{
 		AttacksTable: NewAttacksTable([]Shift{
-			{north: 1, west: 1},
-			{north: 1, east: 1},
-			{south: 1, west: 1},
-			{south: 1, east: 1}}),
+			{Rank: North, File: West},
+			{Rank: North, File: East},
+			{Rank: South, File: West},
+			{Rank: South, File: East},
+		}),
 		PromoteFunc: func(_, _ material.Square) (can, must bool) { return },
 	}
 )

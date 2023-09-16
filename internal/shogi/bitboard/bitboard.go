@@ -12,7 +12,7 @@ import (
 // A Bitboard is a binary representation that encodes all the squares on the board.
 // The 81 squares of a Shogiban are divided into two chunks.
 type Bitboard struct {
-	Low  uint64 //
+	Low  uint64
 	High uint64
 }
 

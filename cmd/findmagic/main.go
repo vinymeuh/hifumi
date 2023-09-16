@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime/pprof"
 
 	"github.com/vinymeuh/hifumi/internal/shogi/material"
 	"github.com/vinymeuh/hifumi/internal/shogi/movegen"
@@ -31,6 +32,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	f, err := os.Create("./findmagic.prof")
+	if err == nil {
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
 	switch os.Args[1] {
 	case "blacklance":
 		fmt.Println("var BlackLanceMagics = [material.SQUARES]uint64{")
@@ -40,8 +47,10 @@ func main() {
 		findMagic(movegen.WhiteLanceAttacksMask, movegen.WhiteLanceAttacksWithBlockers)
 	case "bishop":
 		fmt.Println("var BishopMagics = [material.SQUARES]uint64{")
+		findMagic(movegen.BishopAttacksMask, movegen.BishopAttacksWithBlockers)
 	case "rook":
 		fmt.Println("var RookMagics = [material.SQUARES]uint64{")
+		findMagic(movegen.RookAttacksMask, movegen.RookAttacksWithBlockers)
 	}
 	fmt.Printf("\n}\n")
 }

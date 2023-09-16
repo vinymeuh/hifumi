@@ -30,3 +30,22 @@ func TestSquare(t *testing.T) {
 		})
 	}
 }
+
+func TestIsOnTheEdge(t *testing.T) {
+	tests := []struct { //nolint:govet
+		coordinates string
+		expected    bool
+	}{
+		{coordinates: "2h", expected: false},
+		{coordinates: "1h", expected: true},
+		{coordinates: "2i", expected: true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.coordinates, func(t *testing.T) {
+			sq := NewSquareFromString(tc.coordinates)
+			if tc.expected != sq.IsOnTheEdge() {
+				t.Fatalf("IsOnTheEdge: expected=%v, got=%v", tc.expected, sq.IsOnTheEdge())
+			}
+		})
+	}
+}

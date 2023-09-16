@@ -197,3 +197,55 @@ func TestKing(t *testing.T) {
 		})
 	}
 }
+
+func TestBishop(t *testing.T) {
+	tests := []struct { //nolint:govet
+		startPos string
+		expected []string
+	}{
+		{
+			gamestate.StartPos,
+			[]string{},
+		},
+		{
+			"lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL w - 1",
+			[]string{},
+		},
+	}
+
+	for _, tc := range tests {
+		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+			if gs.Side == material.Black {
+				BlackBishopMoveRules.generateMoves(material.BlackBishop, gs, list)
+			} else {
+				WhiteBishopMoveRules.generateMoves(material.WhiteBishop, gs, list)
+			}
+		})
+	}
+}
+
+func TestRook(t *testing.T) {
+	tests := []struct { //nolint:govet
+		startPos string
+		expected []string
+	}{
+		{
+			gamestate.StartPos,
+			[]string{"2h7h", "2h6h", "2h5h", "2h4h", "2h3h", "2h1h"},
+		},
+		{
+			"lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL w - 1",
+			[]string{"8b9b", "8b7b", "8b6b", "8b5b", "8b4b", "8b3b"},
+		},
+	}
+
+	for _, tc := range tests {
+		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+			if gs.Side == material.Black {
+				BlackRookMoveRules.generateMoves(material.BlackRook, gs, list)
+			} else {
+				WhiteRookMoveRules.generateMoves(material.WhiteRook, gs, list)
+			}
+		})
+	}
+}

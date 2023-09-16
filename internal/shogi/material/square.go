@@ -134,9 +134,29 @@ func (s Square) File() int {
 	return 0
 }
 
+var square2rank = []int{
+	1, 1, 1, 1, 1, 1, 1, 1, 1,
+	2, 2, 2, 2, 2, 2, 2, 2, 2,
+	3, 3, 3, 3, 3, 3, 3, 3, 3,
+	4, 4, 4, 4, 4, 4, 4, 4, 4,
+	5, 5, 5, 5, 5, 5, 5, 5, 5,
+	6, 6, 6, 6, 6, 6, 6, 6, 6,
+	7, 7, 7, 7, 7, 7, 7, 7, 7,
+	8, 8, 8, 8, 8, 8, 8, 8, 8,
+	9, 9, 9, 9, 9, 9, 9, 9, 9,
+}
+
+// Rank returns the rank number of the square.
+func (s Square) Rank() int {
+	if s >= 0 && s < SQUARES {
+		return square2rank[s]
+	}
+	return 0
+}
+
 // IsOnTheEdge returns true is the square is on the edge of the board.
 func (s Square) IsOnTheEdge() bool {
-	if s <= SQ1a || s >= SQ9i || s%FILES <= 1 {
+	if s.File() == 1 || s.File() == 9 || s.Rank() == 1 || s.Rank() == 9 {
 		return true
 	}
 	return false
