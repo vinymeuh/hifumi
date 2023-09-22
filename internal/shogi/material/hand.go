@@ -83,3 +83,52 @@ func (h *Hand) SfenString(w io.StringWriter) {
 		}
 	}
 }
+
+func (h Hand) Pawns() (Piece, int) {
+	if h.color == Black {
+		return BlackPawn, h.ByPiece[BlackPawn]
+	}
+	return WhitePawn, h.ByPiece[WhitePawn]
+}
+
+func (h Hand) Lances() (Piece, int) {
+	if h.color == Black {
+		return BlackLance, h.ByPiece[BlackLance]
+	}
+	return WhiteLance, h.ByPiece[WhiteLance]
+}
+
+func (h Hand) Knights() (Piece, int) {
+	if h.color == Black {
+		return BlackKnight, h.ByPiece[BlackKnight]
+	}
+	return WhiteKnight, h.ByPiece[WhiteKnight]
+}
+
+func (h Hand) Silvers() (Piece, int) {
+	if h.color == Black {
+		return BlackSilver, h.ByPiece[BlackSilver]
+	}
+	return WhiteSilver, h.ByPiece[WhiteSilver]
+}
+
+func (h Hand) Golds() (Piece, int) {
+	if h.color == Black {
+		return BlackGold, h.ByPiece[BlackGold]
+	}
+	return WhiteGold, h.ByPiece[WhiteGold]
+}
+
+func (h Hand) Bishops() (Piece, int) {
+	if h.color == Black {
+		return BlackBishop, h.ByPiece[BlackBishop]
+	}
+	return WhiteBishop, h.ByPiece[WhiteBishop]
+}
+
+func (h Hand) Rooks() (Piece, int) {
+	if h.color == Black {
+		return BlackRook, h.ByPiece[BlackRook]
+	}
+	return WhiteRook, h.ByPiece[WhiteRook]
+}

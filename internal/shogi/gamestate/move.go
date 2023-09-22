@@ -71,7 +71,16 @@ func (m Move) GetAll() (uint, material.Square, material.Square, material.Piece) 
 
 // String returns the move as a USI string.
 func (m Move) String() string {
-	return fmt.Sprintf("%s%s", m.From().String(), m.To().String())
+	flags := m.Flags()
+	switch flags {
+	case MoveFlagDrop:
+		return fmt.Sprintf("%s*%s", strings.ToUpper(m.Piece().String()), m.To().String())
+	default:
+		if flags&MoveFlagPromotion == MoveFlagPromotion {
+			return fmt.Sprintf("%s%s+", m.From().String(), m.To().String())
+		}
+		return fmt.Sprintf("%s%s", m.From().String(), m.To().String())
+	}
 }
 
 // NewMoveFromUsi creates a new Move from a USI move string.
