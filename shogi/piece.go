@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023 VinyMeuh
 // SPDX-License-Identifier: MIT
 
-// Package material provides the basic elements for representing a Shogi game.
-package material
+// Package shogi provides the basic elements for representing a Shogi game.
+package shogi
 
 import "fmt"
 

@@ -5,7 +5,7 @@ package movegen
 import (
 	"fmt"
 
-	"github.com/vinymeuh/hifumi/internal/shogi/material"
+	"github.com/vinymeuh/hifumi/shogi"
 )
 
 type RankShift int
@@ -33,11 +33,11 @@ func (s Shift) Value() int {
 }
 
 // From calculates the target square after applying the shift from a given square.
-func (s Shift) From(from material.Square) (material.Square, error) {
-	to := from + material.Square(s.Value())
+func (s Shift) From(from shogi.Square) (shogi.Square, error) {
+	to := from + shogi.Square(s.Value())
 
 	// out of board
-	if to < 0 || to >= material.SQUARES {
+	if to < 0 || to >= shogi.SQUARES {
 		return -1, fmt.Errorf("invalid move, out of board")
 	}
 	// when moving to East, File must decrease
@@ -58,8 +58,8 @@ func (s Shift) From(from material.Square) (material.Square, error) {
 
 // GetToTheEdge checks if applying the offset will reach an edge of the board.
 // If from is on an edge, returns true only if it will reach another edge.
-func (s Shift) GetToTheEdge(from material.Square) bool {
-	to := from + material.Square(s.Value())
+func (s Shift) GetToTheEdge(from shogi.Square) bool {
+	to := from + shogi.Square(s.Value())
 
 	// center
 	if !from.IsOnTheEdge() {
@@ -67,26 +67,26 @@ func (s Shift) GetToTheEdge(from material.Square) bool {
 	}
 
 	// corners
-	if from == material.SQ9a {
-		if to == material.SQ1a || to == material.SQ9i || to == material.SQ1i {
+	if from == shogi.SQ9a {
+		if to == shogi.SQ1a || to == shogi.SQ9i || to == shogi.SQ1i {
 			return true
 		}
 		return false
 	}
-	if from == material.SQ1a {
-		if to == material.SQ9a || to == material.SQ9i || to == material.SQ1i {
+	if from == shogi.SQ1a {
+		if to == shogi.SQ9a || to == shogi.SQ9i || to == shogi.SQ1i {
 			return true
 		}
 		return false
 	}
-	if from == material.SQ1i {
-		if to == material.SQ1a || to == material.SQ9a || to == material.SQ9i {
+	if from == shogi.SQ1i {
+		if to == shogi.SQ1a || to == shogi.SQ9a || to == shogi.SQ9i {
 			return true
 		}
 		return false
 	}
-	if from == material.SQ9i {
-		if to == material.SQ9a || to == material.SQ1a || to == material.SQ1i {
+	if from == shogi.SQ9i {
+		if to == shogi.SQ9a || to == shogi.SQ1a || to == shogi.SQ1i {
 			return true
 		}
 		return false
@@ -112,4 +112,4 @@ func (s Shift) GetToTheEdge(from material.Square) bool {
 }
 
 // PromoteFunc is a function type that checks promotion rules for moves.
-type PromoteFunc func(from, to material.Square) (can, must bool)
+type PromoteFunc func(from, to shogi.Square) (can, must bool)

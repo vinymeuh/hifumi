@@ -1,12 +1,10 @@
 // SPDX-FileCopyrightText: 2023 VinyMeuh
 // SPDX-License-Identifier: MIT
-package bitboard
+package shogi
 
 import (
 	"fmt"
 	"math"
-
-	"github.com/vinymeuh/hifumi/internal/shogi/material"
 )
 
 // A Bitboard is a binary representation that encodes all the squares on the board.
@@ -31,11 +29,11 @@ func (b Bitboard) String() string {
 // StringBoard returns the representation of a Bitboard as a Shogi board string.
 func (b Bitboard) StringBoard() string {
 	var board string
-	for i := 0; i < material.SQUARES; i++ {
+	for i := 0; i < SQUARES; i++ {
 		if i != 0 && i%9 == 0 {
 			board += "\n"
 		}
-		if b.GetBit(material.Square(i)) == 1 {
+		if b.GetBit(Square(i)) == 1 {
 			board += "1"
 		} else {
 			board += "0"
@@ -45,7 +43,7 @@ func (b Bitboard) StringBoard() string {
 }
 
 // SetBit returns a new Bitboard with the bit at the given square set to 1.
-func (b Bitboard) SetBit(sq material.Square) Bitboard {
+func (b Bitboard) SetBit(sq Square) Bitboard {
 	mask := squareSetMask[sq]
 	return Bitboard{
 		b.Low | mask.Low,
@@ -54,7 +52,7 @@ func (b Bitboard) SetBit(sq material.Square) Bitboard {
 }
 
 // ClearBit returns a new Bitboard with the bit at the given square set to 0.
-func (b Bitboard) ClearBit(sq material.Square) Bitboard {
+func (b Bitboard) ClearBit(sq Square) Bitboard {
 	mask := squareSetMask[sq]
 	return Bitboard{
 		b.Low &^ mask.Low,
@@ -63,7 +61,7 @@ func (b Bitboard) ClearBit(sq material.Square) Bitboard {
 }
 
 // GetBit returns the value of the bit at the given square.
-func (b Bitboard) GetBit(sq material.Square) uint {
+func (b Bitboard) GetBit(sq Square) uint {
 	if sq < 64 {
 		return uint((b.Low >> sq) & 1)
 	}
@@ -141,7 +139,7 @@ func (b Bitboard) Merge() uint64 {
 	return b.Low | b.High
 }
 
-var squareSetMask = [material.SQUARES]Bitboard{}
+var squareSetMask = [SQUARES]Bitboard{}
 
 func init() {
 	for i := 0; i < 64; i++ {

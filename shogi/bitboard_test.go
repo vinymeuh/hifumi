@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2023 VinyMeuh
 // SPDX-License-Identifier: MIT
-package bitboard
+package shogi
 
 import (
 	"fmt"
 	"slices"
 	"testing"
-
-	"github.com/vinymeuh/hifumi/internal/shogi/material"
 )
 
 const fatalfFormat = "\nexpected=%s\n     got=%s"
@@ -50,9 +48,9 @@ func TestGetBit(t *testing.T) {
 
 	for i, tc := range tests {
 		bb := Bitboard{tc.bb[1], tc.bb[0]}
-		for j := uint(0); j < material.SQUARES; j++ {
+		for j := uint(0); j < SQUARES; j++ {
 			t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
-				v := bb.GetBit(material.Square(j))
+				v := bb.GetBit(Square(j))
 				inGet1 := slices.Contains(tc.gets1, j)
 				switch {
 				case inGet1 && v == 0:

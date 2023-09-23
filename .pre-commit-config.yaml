@@ -1,0 +1,10 @@
+# Install hooks with "pre-commit install"
+repos:
+  - repo: https://github.com/TekWizely/pre-commit-golang
+    rev: v1.0.0-rc.1
+    hooks:
+      - id: golangci-lint-mod
+      - id: my-cmd-mod
+        name: go-test
+        alias: go-test
+        args: [go, test, -v, ./...]

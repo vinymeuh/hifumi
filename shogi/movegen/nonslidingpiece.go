@@ -3,18 +3,17 @@
 package movegen
 
 import (
-	"github.com/vinymeuh/hifumi/internal/shogi/bitboard"
-	"github.com/vinymeuh/hifumi/internal/shogi/gamestate"
-	"github.com/vinymeuh/hifumi/internal/shogi/material"
+	"github.com/vinymeuh/hifumi/shogi"
+	"github.com/vinymeuh/hifumi/shogi/gamestate"
 )
 
 // AttacksTable is an array of bitboard indexed by square, used for non sliding pieces.
-type AttacksTable [material.SQUARES]bitboard.Bitboard
+type AttacksTable [shogi.SQUARES]shogi.Bitboard
 
 func NewAttacksTable(shifts []Shift) AttacksTable {
 	var at AttacksTable
-	for sq := material.Square(0); sq < material.SQUARES; sq++ {
-		bb := bitboard.Zero
+	for sq := shogi.Square(0); sq < shogi.SQUARES; sq++ {
+		bb := shogi.Zero
 		for _, shift := range shifts {
 			newsq, err := shift.From(sq)
 			if err != nil {
@@ -32,19 +31,19 @@ type PieceMoveRules struct {
 	AttacksTable AttacksTable
 }
 
-func (rules PieceMoveRules) generateMoves(piece material.Piece, gs *gamestate.Gamestate, list *MoveList) {
+func (rules PieceMoveRules) generateMoves(piece shogi.Piece, gs *gamestate.Gamestate, list *MoveList) {
 	mycolor := piece.Color() // gs.Side ?
 	myopponent := mycolor.Opponent()
 	mypieces := gs.BBbyPiece[piece]
 
 	// iterate over each of our pieces
-	for mypieces != bitboard.Zero {
-		from := material.Square(mypieces.Lsb())
+	for mypieces != shogi.Zero {
+		from := shogi.Square(mypieces.Lsb())
 		attacks := rules.AttacksTable[from]
 
 		// generate moves for the current piece on "from"
-		for attacks != bitboard.Zero {
-			to := material.Square(attacks.Lsb())
+		for attacks != shogi.Zero {
+			to := shogi.Square(attacks.Lsb())
 			canPromote, mustPromote := rules.PromoteFunc(from, to)
 
 			switch {
@@ -73,7 +72,7 @@ func (rules PieceMoveRules) generateMoves(piece material.Piece, gs *gamestate.Ga
 						gamestate.MoveFlagMove|gamestate.MoveFlagPromotion,
 						from,
 						to,
-						material.NoPiece,
+						shogi.NoPiece,
 					))
 				}
 				if !mustPromote {
@@ -81,7 +80,7 @@ func (rules PieceMoveRules) generateMoves(piece material.Piece, gs *gamestate.Ga
 						gamestate.MoveFlagMove,
 						from,
 						to,
-						material.NoPiece,
+						shogi.NoPiece,
 					))
 				}
 			}
@@ -97,12 +96,12 @@ var (
 		AttacksTable: NewAttacksTable([]Shift{
 			{Rank: North},
 		}),
-		PromoteFunc: func(_, to material.Square) (can, must bool) {
+		PromoteFunc: func(_, to shogi.Square) (can, must bool) {
 			switch {
-			case to <= material.SQ1c && to > material.SQ1a:
+			case to <= shogi.SQ1c && to > shogi.SQ1a:
 				can = true
 				must = false
-			case to <= material.SQ1a:
+			case to <= shogi.SQ1a:
 				can = true
 				must = true
 			}
@@ -115,12 +114,12 @@ var (
 		AttacksTable: NewAttacksTable([]Shift{
 			{Rank: South},
 		}),
-		PromoteFunc: func(_, to material.Square) (can, must bool) {
+		PromoteFunc: func(_, to shogi.Square) (can, must bool) {
 			switch {
-			case to >= material.SQ9g && to < material.SQ9a:
+			case to >= shogi.SQ9g && to < shogi.SQ9a:
 				can = true
 				must = false
-			case to >= material.SQ9i:
+			case to >= shogi.SQ9i:
 				can = true
 				must = true
 			}
@@ -134,12 +133,12 @@ var (
 			{Rank: 2 * North, File: East},
 			{Rank: 2 * North, File: West},
 		}),
-		PromoteFunc: func(_, to material.Square) (can, must bool) {
+		PromoteFunc: func(_, to shogi.Square) (can, must bool) {
 			switch {
-			case to <= material.SQ1c && to > material.SQ1b:
+			case to <= shogi.SQ1c && to > shogi.SQ1b:
 				can = true
 				must = false
-			case to <= material.SQ1b:
+			case to <= shogi.SQ1b:
 				can = true
 				must = true
 			}
@@ -153,12 +152,12 @@ var (
 			{Rank: 2 * South, File: East},
 			{Rank: 2 * South, File: West},
 		}),
-		PromoteFunc: func(_, to material.Square) (can, must bool) {
+		PromoteFunc: func(_, to shogi.Square) (can, must bool) {
 			switch {
-			case to >= material.SQ9g && to < material.SQ9h:
+			case to >= shogi.SQ9g && to < shogi.SQ9h:
 				can = true
 				must = false
-			case to >= material.SQ9h:
+			case to >= shogi.SQ9h:
 				can = true
 				must = true
 			}
@@ -175,9 +174,9 @@ var (
 			{Rank: South, File: West},
 			{Rank: South, File: East},
 		}),
-		PromoteFunc: func(from, to material.Square) (can, must bool) {
+		PromoteFunc: func(from, to shogi.Square) (can, must bool) {
 			switch {
-			case (from <= material.SQ1c && from > material.SQ1b) || (to <= material.SQ1c && to > material.SQ1b):
+			case (from <= shogi.SQ1c && from > shogi.SQ1b) || (to <= shogi.SQ1c && to > shogi.SQ1b):
 				can = true
 				must = false
 			}
@@ -194,9 +193,9 @@ var (
 			{Rank: South},
 			{Rank: South, File: East},
 		}),
-		PromoteFunc: func(from, to material.Square) (can, must bool) {
+		PromoteFunc: func(from, to shogi.Square) (can, must bool) {
 			switch {
-			case (from >= material.SQ9g && from < material.SQ9a) || (to >= material.SQ9g && to < material.SQ9a):
+			case (from >= shogi.SQ9g && from < shogi.SQ9a) || (to >= shogi.SQ9g && to < shogi.SQ9a):
 				can = true
 				must = false
 			}
@@ -214,7 +213,7 @@ var (
 			{Rank: South},
 			{File: East},
 		}),
-		PromoteFunc: func(_, _ material.Square) (can, must bool) { return },
+		PromoteFunc: func(_, _ shogi.Square) (can, must bool) { return },
 	}
 
 	// WhiteGold
@@ -227,7 +226,7 @@ var (
 			{Rank: South},
 			{Rank: South, File: East},
 		}),
-		PromoteFunc: func(_, _ material.Square) (can, must bool) { return },
+		PromoteFunc: func(_, _ shogi.Square) (can, must bool) { return },
 	}
 
 	// Kings
@@ -242,7 +241,7 @@ var (
 			{Rank: South, File: West},
 			{Rank: South, File: East},
 		}),
-		PromoteFunc: func(_, _ material.Square) (can, must bool) { return },
+		PromoteFunc: func(_, _ shogi.Square) (can, must bool) { return },
 	}
 
 	// PromotedBishops (additional moves)
@@ -253,7 +252,7 @@ var (
 			{File: East},
 			{Rank: South},
 		}),
-		PromoteFunc: func(_, _ material.Square) (can, must bool) { return },
+		PromoteFunc: func(_, _ shogi.Square) (can, must bool) { return },
 	}
 
 	// PromotedRooks (additional moves)
@@ -264,6 +263,6 @@ var (
 			{Rank: South, File: West},
 			{Rank: South, File: East},
 		}),
-		PromoteFunc: func(_, _ material.Square) (can, must bool) { return },
+		PromoteFunc: func(_, _ shogi.Square) (can, must bool) { return },
 	}
 )

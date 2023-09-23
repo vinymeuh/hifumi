@@ -5,19 +5,19 @@ package movegen
 import (
 	"testing"
 
-	"github.com/vinymeuh/hifumi/internal/shogi/material"
+	"github.com/vinymeuh/hifumi/shogi"
 )
 
 func TestGetToTheEdge(t *testing.T) {
 	tests := []struct { //nolint:govet
 		label    string
-		from     material.Square
+		from     shogi.Square
 		shift    Shift
 		expected bool
 	}{
 		{
 			"test",
-			material.SQ9i,
+			shogi.SQ9i,
 			Shift{Rank: North},
 			false,
 		},

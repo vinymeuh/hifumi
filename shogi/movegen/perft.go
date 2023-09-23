@@ -5,7 +5,7 @@ package movegen
 import (
 	"time"
 
-	"github.com/vinymeuh/hifumi/internal/shogi/gamestate"
+	"github.com/vinymeuh/hifumi/shogi/gamestate"
 )
 
 type PerftResult struct {

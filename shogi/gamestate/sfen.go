@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/vinymeuh/hifumi/internal/shogi/material"
+	"github.com/vinymeuh/hifumi/shogi"
 )
 
 // StartPos is a SFEN string corresponding to the default Shogi starting position.
@@ -31,7 +31,7 @@ func NewFromSfen(sfen string) (*Gamestate, error) {
 	switch fields[1] {
 	case "b":
 	case "w":
-		g.Side = material.White
+		g.Side = shogi.White
 	default:
 		return nil, fmt.Errorf("SFEN second part must be 'b' for black or 'w' for white")
 	}
@@ -64,7 +64,7 @@ func (g Gamestate) Sfen() string {
 	// board
 	var emptySquare int
 	for i, k := range g.Board {
-		if i%material.FILES == 0 && i > 0 {
+		if i%shogi.FILES == 0 && i > 0 {
 			if emptySquare > 0 {
 				sb.WriteString(strconv.Itoa(emptySquare))
 				emptySquare = 0
@@ -72,7 +72,7 @@ func (g Gamestate) Sfen() string {
 			sb.WriteString("/")
 		}
 
-		if k == material.NoPiece {
+		if k == shogi.NoPiece {
 			emptySquare++
 		} else {
 			if emptySquare > 0 {
@@ -85,21 +85,21 @@ func (g Gamestate) Sfen() string {
 
 	// side to move
 	switch g.Side {
-	case material.Black:
+	case shogi.Black:
 		sb.WriteString(" b ")
-	case material.White:
+	case shogi.White:
 		sb.WriteString(" w ")
-	case material.NoColor:
+	case shogi.NoColor:
 		sb.WriteString(" ? ")
 	}
 
 	// hands
 	switch {
-	case g.Hands[material.Black].Count == 0 && g.Hands[material.White].Count == 0:
+	case g.Hands[shogi.Black].Count == 0 && g.Hands[shogi.White].Count == 0:
 		sb.WriteString("-")
 	default:
-		g.Hands[material.Black].SfenString(&sb)
-		g.Hands[material.White].SfenString(&sb)
+		g.Hands[shogi.Black].SfenString(&sb)
+		g.Hands[shogi.White].SfenString(&sb)
 	}
 
 	// move count
@@ -109,7 +109,7 @@ func (g Gamestate) Sfen() string {
 }
 
 func (g *Gamestate) sfenParseBoard(str string) error {
-	for ch, sq := 0, 0; sq < material.SQUARES; ch, sq = ch+1, sq+1 {
+	for ch, sq := 0, 0; sq < shogi.SQUARES; ch, sq = ch+1, sq+1 {
 		token := string(str[ch])
 		switch {
 		case sq == 0 && token == "/":
@@ -119,19 +119,19 @@ func (g *Gamestate) sfenParseBoard(str string) error {
 			sq += n - 1
 		case token == "/":
 			sq-- // move back current square counter as '/' does not represent a square
-			if sq%material.FILES != 0 {
-				sq = material.FILES*((sq+material.FILES)/material.FILES) - 1
+			if sq%shogi.FILES != 0 {
+				sq = shogi.FILES*((sq+shogi.FILES)/shogi.FILES) - 1
 			}
 		case token == "+":
 			ch++
 			token += string(str[ch])
 			fallthrough
 		default:
-			k, err := material.NewPiece(token)
+			k, err := shogi.NewPiece(token)
 			if err != nil {
 				return fmt.Errorf("SFEN invalid character in board")
 			}
-			g.setPiece(k, material.Square(sq))
+			g.setPiece(k, shogi.Square(sq))
 		}
 	}
 	return nil
@@ -144,7 +144,7 @@ func (g *Gamestate) sfenParseHands(txt string) error {
 		case unicode.IsDigit(ch):
 			n, _ = strconv.Atoi(string(ch))
 		default:
-			p, err := material.NewPiece(string(ch))
+			p, err := shogi.NewPiece(string(ch))
 			if err == nil {
 				g.Hands[p.Color()].SetCount(p, n)
 			} else {

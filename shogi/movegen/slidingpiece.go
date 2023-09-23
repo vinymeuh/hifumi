@@ -5,9 +5,8 @@ package movegen
 import (
 	"math/rand"
 
-	"github.com/vinymeuh/hifumi/internal/shogi/bitboard"
-	"github.com/vinymeuh/hifumi/internal/shogi/gamestate"
-	"github.com/vinymeuh/hifumi/internal/shogi/material"
+	"github.com/vinymeuh/hifumi/shogi"
+	"github.com/vinymeuh/hifumi/shogi/gamestate"
 )
 
 // https://www.chessprogramming.org/Looking_for_Magics
@@ -15,27 +14,27 @@ import (
 // https://github.com/maksimKorzh/chess_programming/blob/master/src/magics/magics.c
 // https://stackoverflow.com/questions/30680559/how-to-find-magic-bitboards
 
-// MagicEntry represents the precomputed information for a square's magic bitboard.
+// MagicEntry represents the precomputed information for a square's magic shogi.
 type MagicEntry struct {
-	Attacks []bitboard.Bitboard // Attacks indexed by magic index
-	Mask    bitboard.Bitboard   // All possible attacks on a board without blockers, excluding edges
-	Magic   uint64              // The magic number for this square
-	Shift   uint                // Shift value for indexing the magic attacks
+	Attacks []shogi.Bitboard // Attacks indexed by magic index
+	Mask    shogi.Bitboard   // All possible attacks on a board without blockers, excluding edges
+	Magic   uint64           // The magic number for this square
+	Shift   uint             // Shift value for indexing the magic attacks
 }
 
 // MagicsTable is an array of MagicEntry indexed by square.
-type MagicsTable [material.SQUARES]MagicEntry
+type MagicsTable [shogi.SQUARES]MagicEntry
 
 // NewMagicsTable initializes a MagicsTable with precomputed magic numbers.
-func NewMagicsTable(magics [material.SQUARES]uint64, maskFunc GenerateAttacksMaskFunc, attacksFunc GenerateAttacksWithBlockersFunc) MagicsTable {
+func NewMagicsTable(magics [shogi.SQUARES]uint64, maskFunc GenerateAttacksMaskFunc, attacksFunc GenerateAttacksWithBlockersFunc) MagicsTable {
 	var mt MagicsTable
-	for sq := material.Square(0); sq < material.SQUARES; sq++ {
+	for sq := shogi.Square(0); sq < shogi.SQUARES; sq++ {
 		mask := maskFunc(sq)
 		relevantBits := mask.PopCount()
 		occupancyVariations := uint(1) << relevantBits
 
 		me := MagicEntry{
-			Attacks: make([]bitboard.Bitboard, occupancyVariations),
+			Attacks: make([]shogi.Bitboard, occupancyVariations),
 			Mask:    mask,
 			Magic:   magics[sq],
 			Shift:   64 - relevantBits,
@@ -53,13 +52,13 @@ func NewMagicsTable(magics [material.SQUARES]uint64, maskFunc GenerateAttacksMas
 }
 
 // GenerateAttacksMaskFunc is a function type to generate masks of all possible attacks for a square.
-type GenerateAttacksMaskFunc func(sq material.Square) bitboard.Bitboard
+type GenerateAttacksMaskFunc func(sq shogi.Square) shogi.Bitboard
 
 // GenerateAttacksMaskFuncBuilder creates a mask generation function for a set of shifts.
 func GenerateAttacksMaskFuncBuilder(shifts []Shift) GenerateAttacksMaskFunc {
-	return func(sq material.Square) bitboard.Bitboard {
+	return func(sq shogi.Square) shogi.Bitboard {
 		var err error
-		bb := bitboard.Zero
+		bb := shogi.Zero
 		for _, shift := range shifts {
 			newsq := sq
 			for {
@@ -79,12 +78,12 @@ func GenerateAttacksMaskFuncBuilder(shifts []Shift) GenerateAttacksMaskFunc {
 }
 
 // GenerateAttacksWithBlockersFn is a function type to generate attacks with blockers for a square.
-type GenerateAttacksWithBlockersFunc func(sq material.Square, blockers bitboard.Bitboard) bitboard.Bitboard
+type GenerateAttacksWithBlockersFunc func(sq shogi.Square, blockers shogi.Bitboard) shogi.Bitboard
 
 // GenerateAttacksWithBlockersFuncBuilder creates an attack generation function for a set of shifts.
 func GenerateAttacksWithBlockersFuncBuilder(shifts []Shift) GenerateAttacksWithBlockersFunc {
-	return func(sq material.Square, blockers bitboard.Bitboard) bitboard.Bitboard {
-		bb := bitboard.Zero
+	return func(sq shogi.Square, blockers shogi.Bitboard) shogi.Bitboard {
+		bb := shogi.Zero
 		var err error
 		for _, shift := range shifts {
 			newsq := sq
@@ -105,35 +104,35 @@ func GenerateAttacksWithBlockersFuncBuilder(shifts []Shift) GenerateAttacksWithB
 }
 
 // GenerateOccupancy computes an occupancy bitboard for a given magic index.
-func GenerateOccupancy(index uint, mask bitboard.Bitboard) bitboard.Bitboard {
-	occupancy := bitboard.Zero
+func GenerateOccupancy(index uint, mask shogi.Bitboard) shogi.Bitboard {
+	occupancy := shogi.Zero
 	count := mask.PopCount()
 	for i := uint(0); i < count; i++ {
 		sq := mask.Lsb()
-		mask = mask.ClearBit(material.Square(sq))
+		mask = mask.ClearBit(shogi.Square(sq))
 		if (index & (1 << i)) != 0 { // test if the i-th bit in the index is set
-			occupancy = occupancy.SetBit(material.Square(sq))
+			occupancy = occupancy.SetBit(shogi.Square(sq))
 		}
 	}
 	return occupancy
 }
 
 // MagicIndex computes the magic index to be used for magic bitboard lookup.
-func MagicIndex(bb bitboard.Bitboard, magic uint64, shift uint) uint64 {
+func MagicIndex(bb shogi.Bitboard, magic uint64, shift uint) uint64 {
 	return (bb.Merge() * magic) >> shift
 }
 
 // FindMagic finds a suitable magic number for a square, given the mask and attack generation function.
-func FindMagic(sq material.Square, mask bitboard.Bitboard, attacksFunc GenerateAttacksWithBlockersFunc) uint64 {
+func FindMagic(sq shogi.Square, mask shogi.Bitboard, attacksFunc GenerateAttacksWithBlockersFunc) uint64 {
 	relevantBits := mask.PopCount()
 	shift := 64 - relevantBits // 64 because used to shift Magic which is a uint64
 
 	// loop over occupancy variations
 	occupancyVariations := uint(1) << relevantBits
 
-	attacks := make([]bitboard.Bitboard, occupancyVariations)
-	occupancy := make([]bitboard.Bitboard, occupancyVariations)
-	indexedAttacks := make([]bitboard.Bitboard, occupancyVariations)
+	attacks := make([]shogi.Bitboard, occupancyVariations)
+	occupancy := make([]shogi.Bitboard, occupancyVariations)
+	indexedAttacks := make([]shogi.Bitboard, occupancyVariations)
 	// indexedAttacksAttempt is used to keep track of test attempt counts
 	// and avoid resetting indexedAttacks which is too slow
 	indexedAttacksAttempt := make([]uint, occupancyVariations)
@@ -173,23 +172,23 @@ type SlidingPieceMoveRules struct {
 }
 
 // generateMoves generates moves for a sliding piece on the board.
-func (rules SlidingPieceMoveRules) generateMoves(piece material.Piece, gs *gamestate.Gamestate, list *MoveList) {
+func (rules SlidingPieceMoveRules) generateMoves(piece shogi.Piece, gs *gamestate.Gamestate, list *MoveList) {
 	mycolor := piece.Color() // gs.Side ?
 	myopponent := mycolor.Opponent()
 	mypieces := gs.BBbyPiece[piece]
 
-	occupied := gs.BBbyColor[material.Black].Or(gs.BBbyColor[material.White])
+	occupied := gs.BBbyColor[shogi.Black].Or(gs.BBbyColor[shogi.White])
 
 	// iterate over each of our pieces
-	for mypieces != bitboard.Zero {
-		from := material.Square(mypieces.Lsb())
+	for mypieces != shogi.Zero {
+		from := shogi.Square(mypieces.Lsb())
 		me := rules.MagicsTable[from]
 		blockers := occupied.And(me.Mask)
 		index := MagicIndex(blockers, me.Magic, me.Shift)
 		attacks := me.Attacks[index]
 
-		for attacks != bitboard.Zero {
-			to := material.Square(attacks.Lsb())
+		for attacks != shogi.Zero {
+			to := shogi.Square(attacks.Lsb())
 			canPromote, mustPromote := rules.PromoteFunc(from, to)
 
 			switch {
@@ -218,7 +217,7 @@ func (rules SlidingPieceMoveRules) generateMoves(piece material.Piece, gs *games
 						gamestate.MoveFlagMove|gamestate.MoveFlagPromotion,
 						from,
 						to,
-						material.NoPiece,
+						shogi.NoPiece,
 					))
 				}
 				if !mustPromote {
@@ -226,7 +225,7 @@ func (rules SlidingPieceMoveRules) generateMoves(piece material.Piece, gs *games
 						gamestate.MoveFlagMove,
 						from,
 						to,
-						material.NoPiece,
+						shogi.NoPiece,
 					))
 				}
 			}
@@ -248,12 +247,12 @@ var (
 
 	BlackLanceMoveRules = SlidingPieceMoveRules{
 		MagicsTable: NewMagicsTable(BlackLanceMagics, BlackLanceAttacksMask, BlackLanceAttacksWithBlockers),
-		PromoteFunc: func(_, to material.Square) (can, must bool) {
+		PromoteFunc: func(_, to shogi.Square) (can, must bool) {
 			switch {
-			case to <= material.SQ1c && to > material.SQ1a:
+			case to <= shogi.SQ1c && to > shogi.SQ1a:
 				can = true
 				must = false
-			case to <= material.SQ1a:
+			case to <= shogi.SQ1a:
 				can = true
 				must = true
 			}
@@ -261,7 +260,7 @@ var (
 		},
 	}
 
-	BlackLanceMagics = [material.SQUARES]uint64{
+	BlackLanceMagics = [shogi.SQUARES]uint64{
 		0x820002130002000, 0x8020142410085880, 0x1483800140012, 0x10440901088002, 0x2804002822010000, 0x46400010201280, 0x80002200024220, 0x411000010000, 0x80004000148004,
 		0x81010011004D, 0x120803002002080, 0x200C00E400600014, 0x8340101020808, 0x2002004005601006, 0x48000400C00020, 0xC006201001, 0x8000120224810100, 0x2100208082800570,
 		0x120000620008000, 0x100C010110004001, 0x400D01042030009, 0x6120480010000020, 0x400400000000009, 0x8404080000600, 0x8000010300000800, 0xA00200100020000, 0x20084004000800,
@@ -284,12 +283,12 @@ var (
 
 	WhiteLanceMoveRules = SlidingPieceMoveRules{
 		MagicsTable: NewMagicsTable(WhiteLanceMagics, WhiteLanceAttacksMask, WhiteLanceAttacksWithBlockers),
-		PromoteFunc: func(_, to material.Square) (can, must bool) {
+		PromoteFunc: func(_, to shogi.Square) (can, must bool) {
 			switch {
-			case to >= material.SQ9g && to < material.SQ9a:
+			case to >= shogi.SQ9g && to < shogi.SQ9a:
 				can = true
 				must = false
-			case to >= material.SQ9i:
+			case to >= shogi.SQ9i:
 				can = true
 				must = true
 			}
@@ -297,7 +296,7 @@ var (
 		},
 	}
 
-	WhiteLanceMagics = [material.SQUARES]uint64{
+	WhiteLanceMagics = [shogi.SQUARES]uint64{
 		0x2008800008148C10, 0x900A6820000004D0, 0x4140400001000100, 0x1000084800802028, 0x3001221403240A0, 0x4001044081080000, 0x9004000809801410, 0x800400004000000, 0x4C00042022410,
 		0xC00804502000049, 0x404100, 0x4180410200100000, 0x80008046018008, 0x42000249000029, 0x8404400A02130080, 0x410000480001000, 0x2100010580010355, 0x234008604020480,
 		0x20000002000, 0x4812040430, 0xC500003024218000, 0x8000100000680, 0x200A040604000007, 0x400040002080284, 0x41C0440008004040, 0x6000300000008A0, 0x100082010060200,
@@ -326,7 +325,7 @@ var (
 
 	BlackBishopMoveRules = SlidingPieceMoveRules{
 		MagicsTable: NewMagicsTable(BishopMagics, BishopAttacksMask, BishopAttacksWithBlockers),
-		PromoteFunc: func(from, to material.Square) (can, must bool) {
+		PromoteFunc: func(from, to shogi.Square) (can, must bool) {
 			switch {
 			case from.Rank() <= 3 || to.Rank() <= 3:
 				can = true
@@ -338,7 +337,7 @@ var (
 
 	WhiteBishopMoveRules = SlidingPieceMoveRules{
 		MagicsTable: NewMagicsTable(BishopMagics, BishopAttacksMask, BishopAttacksWithBlockers),
-		PromoteFunc: func(from, to material.Square) (can, must bool) {
+		PromoteFunc: func(from, to shogi.Square) (can, must bool) {
 			switch {
 			case from.Rank() >= 7 || to.Rank() >= 7:
 				can = true
@@ -348,7 +347,7 @@ var (
 		},
 	}
 
-	BishopMagics = [material.SQUARES]uint64{
+	BishopMagics = [shogi.SQUARES]uint64{
 		0x8022881000200401, 0x800200001066, 0x18010080080100, 0x610000000050, 0x100402108000C, 0x80260210000, 0x4021810408C00000, 0x1000080280000008, 0x5100008284082420,
 		0x240002440000602, 0x1020010040001000, 0x848040000000080, 0x404012000042, 0x100012000108818, 0x8100020004824000, 0xA00000106000800, 0x800008901010000, 0x3000000041017000,
 		0x690880100101000, 0x2300009000000, 0x1842020010004110, 0x1405400240040412, 0x10005AB288004A0, 0x10000C4024004801, 0x21A8362200800010, 0x10000042E24081, 0x829942000000010,
@@ -377,7 +376,7 @@ var (
 
 	BlackRookMoveRules = SlidingPieceMoveRules{
 		MagicsTable: NewMagicsTable(RookMagics, RookAttacksMask, RookAttacksWithBlockers),
-		PromoteFunc: func(from, to material.Square) (can, must bool) {
+		PromoteFunc: func(from, to shogi.Square) (can, must bool) {
 			switch {
 			case from.Rank() <= 3 || to.Rank() <= 3:
 				can = true
@@ -389,7 +388,7 @@ var (
 
 	WhiteRookMoveRules = SlidingPieceMoveRules{
 		MagicsTable: NewMagicsTable(RookMagics, RookAttacksMask, RookAttacksWithBlockers),
-		PromoteFunc: func(from, to material.Square) (can, must bool) {
+		PromoteFunc: func(from, to shogi.Square) (can, must bool) {
 			switch {
 			case from.Rank() >= 7 || to.Rank() >= 7:
 				can = true
@@ -399,7 +398,7 @@ var (
 		},
 	}
 
-	RookMagics = [material.SQUARES]uint64{
+	RookMagics = [shogi.SQUARES]uint64{
 		0x1282000069084051, 0x4000104104802001, 0x800810A301080010, 0x1944010100142000, 0x8424044040700, 0x800010000C803400, 0x8000048011100500, 0x600000B0810120C, 0x2010020002020860,
 		0x8201000001400, 0x30090020000000, 0xC220602000020, 0xD491105801808000, 0x5020D0000000005, 0x20034001000040, 0x2080001406000, 0x2080200200020200, 0x8480000C021824,
 		0x4000026C01880000, 0x2024142210010000, 0x1102200210C28080, 0x1000000843, 0x2B00C00C210002, 0x5000081250000980, 0x20800081400030, 0x800000100066, 0x1008020000148120,

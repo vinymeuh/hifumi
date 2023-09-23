@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/vinymeuh/hifumi/internal/shogi/material"
+	"github.com/vinymeuh/hifumi/shogi"
 )
 
 // MoveFlags represents the type of a Shogi Move.
@@ -32,7 +32,7 @@ const (
 type Move uint
 
 // NewMove creates a new Move with the provided MoveFlags, From, To, and Piece.
-func NewMove(flags uint, from material.Square, to material.Square, piece material.Piece) Move {
+func NewMove(flags uint, from shogi.Square, to shogi.Square, piece shogi.Piece) Move {
 	m := Move(flags&0x0F) << 0
 	m |= Move(from&0xFF) << 4
 	m |= Move(to&0xFF) << 12
@@ -46,22 +46,22 @@ func (m Move) Flags() uint {
 }
 
 // From returns the From part of the Move.
-func (m Move) From() material.Square {
-	return material.Square((m >> 4) & 0xFF)
+func (m Move) From() shogi.Square {
+	return shogi.Square((m >> 4) & 0xFF)
 }
 
 // To returns the To part of the Move.
-func (m Move) To() material.Square {
-	return material.Square((m >> 12) & 0xFF)
+func (m Move) To() shogi.Square {
+	return shogi.Square((m >> 12) & 0xFF)
 }
 
 // Piece returns the Piece part of the Move.
-func (m Move) Piece() material.Piece {
-	return material.Piece(uint((m >> 20) & 0x3F))
+func (m Move) Piece() shogi.Piece {
+	return shogi.Piece(uint((m >> 20) & 0x3F))
 }
 
 // GetAll returns the four parts of the Move.
-func (m Move) GetAll() (uint, material.Square, material.Square, material.Piece) {
+func (m Move) GetAll() (uint, shogi.Square, shogi.Square, shogi.Piece) {
 	flags := m.Flags()
 	from := m.From()
 	to := m.To()
@@ -87,12 +87,12 @@ func (m Move) String() string {
 func NewMoveFromUsi(g *Gamestate, s string) Move {
 	switch {
 	case regexMove.Match([]byte(s)):
-		from := material.NewSquareFromString(s[0:2])
+		from := shogi.NewSquareFromString(s[0:2])
 		pFrom := g.Board[from]
-		if pFrom == material.NoPiece || pFrom.Color() != g.Side {
+		if pFrom == shogi.NoPiece || pFrom.Color() != g.Side {
 			return Move(0)
 		}
-		to := material.NewSquareFromString(s[2:4])
+		to := shogi.NewSquareFromString(s[2:4])
 		pTo := g.Board[to]
 
 		flags := MoveFlagMove
@@ -100,7 +100,7 @@ func NewMoveFromUsi(g *Gamestate, s string) Move {
 			flags |= MoveFlagPromotion
 		}
 		switch {
-		case pTo == material.NoPiece:
+		case pTo == shogi.NoPiece:
 			return NewMove(flags, from, to, 0)
 		case pTo.Color() != g.Side:
 			return NewMove(flags|MoveFlagCapture, from, to, pTo)
@@ -108,13 +108,13 @@ func NewMoveFromUsi(g *Gamestate, s string) Move {
 			return Move(0)
 		}
 	case regexDrop.Match([]byte(s)):
-		var p material.Piece
-		if g.Side == material.Black {
-			p, _ = material.NewPiece(s[0:1])
+		var p shogi.Piece
+		if g.Side == shogi.Black {
+			p, _ = shogi.NewPiece(s[0:1])
 		} else {
-			p, _ = material.NewPiece(strings.ToLower(s[0:1]))
+			p, _ = shogi.NewPiece(strings.ToLower(s[0:1]))
 		}
-		to := material.NewSquareFromString(s[2:4])
+		to := shogi.NewSquareFromString(s[2:4])
 		return NewMove(MoveFlagDrop, 0, to, p)
 	}
 	return Move(0)

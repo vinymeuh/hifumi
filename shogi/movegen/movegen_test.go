@@ -6,8 +6,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/vinymeuh/hifumi/internal/shogi/gamestate"
-	"github.com/vinymeuh/hifumi/internal/shogi/material"
+	"github.com/vinymeuh/hifumi/shogi"
+	"github.com/vinymeuh/hifumi/shogi/gamestate"
 )
 
 type generateMovesFunc func(gs *gamestate.Gamestate, list *MoveList)
@@ -51,10 +51,10 @@ func TestPawn(t *testing.T) {
 
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
-			if gs.Side == material.Black {
-				BlackPawnMoveRules.generateMoves(material.BlackPawn, gs, list)
+			if gs.Side == shogi.Black {
+				BlackPawnMoveRules.generateMoves(shogi.BlackPawn, gs, list)
 			} else {
-				WhitePawnMoveRules.generateMoves(material.WhitePawn, gs, list)
+				WhitePawnMoveRules.generateMoves(shogi.WhitePawn, gs, list)
 			}
 		})
 	}
@@ -77,10 +77,10 @@ func TestLance(t *testing.T) {
 
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
-			if gs.Side == material.Black {
-				BlackLanceMoveRules.generateMoves(material.BlackLance, gs, list)
+			if gs.Side == shogi.Black {
+				BlackLanceMoveRules.generateMoves(shogi.BlackLance, gs, list)
 			} else {
-				WhiteLanceMoveRules.generateMoves(material.WhiteLance, gs, list)
+				WhiteLanceMoveRules.generateMoves(shogi.WhiteLance, gs, list)
 			}
 		})
 	}
@@ -111,10 +111,10 @@ func TestKnight(t *testing.T) {
 
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
-			if gs.Side == material.Black {
-				BlackKnightMoveRules.generateMoves(material.BlackKnight, gs, list)
+			if gs.Side == shogi.Black {
+				BlackKnightMoveRules.generateMoves(shogi.BlackKnight, gs, list)
 			} else {
-				WhiteKnightMoveRules.generateMoves(material.WhiteKnight, gs, list)
+				WhiteKnightMoveRules.generateMoves(shogi.WhiteKnight, gs, list)
 			}
 		})
 	}
@@ -137,10 +137,10 @@ func TestSilver(t *testing.T) {
 
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
-			if gs.Side == material.Black {
-				BlackSilverMoveRules.generateMoves(material.BlackSilver, gs, list)
+			if gs.Side == shogi.Black {
+				BlackSilverMoveRules.generateMoves(shogi.BlackSilver, gs, list)
 			} else {
-				WhiteSilverMoveRules.generateMoves(material.WhiteSilver, gs, list)
+				WhiteSilverMoveRules.generateMoves(shogi.WhiteSilver, gs, list)
 			}
 		})
 	}
@@ -163,10 +163,10 @@ func TestGold(t *testing.T) {
 
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
-			if gs.Side == material.Black {
-				BlackGoldMoveRules.generateMoves(material.BlackGold, gs, list)
+			if gs.Side == shogi.Black {
+				BlackGoldMoveRules.generateMoves(shogi.BlackGold, gs, list)
 			} else {
-				WhiteGoldMoveRules.generateMoves(material.WhiteGold, gs, list)
+				WhiteGoldMoveRules.generateMoves(shogi.WhiteGold, gs, list)
 			}
 		})
 	}
@@ -189,10 +189,10 @@ func TestKing(t *testing.T) {
 
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
-			if gs.Side == material.Black {
-				KingMoveRules.generateMoves(material.BlackKing, gs, list)
+			if gs.Side == shogi.Black {
+				KingMoveRules.generateMoves(shogi.BlackKing, gs, list)
 			} else {
-				KingMoveRules.generateMoves(material.WhiteKing, gs, list)
+				KingMoveRules.generateMoves(shogi.WhiteKing, gs, list)
 			}
 		})
 	}
@@ -215,10 +215,10 @@ func TestBishop(t *testing.T) {
 
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
-			if gs.Side == material.Black {
-				BlackBishopMoveRules.generateMoves(material.BlackBishop, gs, list)
+			if gs.Side == shogi.Black {
+				BlackBishopMoveRules.generateMoves(shogi.BlackBishop, gs, list)
 			} else {
-				WhiteBishopMoveRules.generateMoves(material.WhiteBishop, gs, list)
+				WhiteBishopMoveRules.generateMoves(shogi.WhiteBishop, gs, list)
 			}
 		})
 	}
@@ -241,10 +241,10 @@ func TestRook(t *testing.T) {
 
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
-			if gs.Side == material.Black {
-				BlackRookMoveRules.generateMoves(material.BlackRook, gs, list)
+			if gs.Side == shogi.Black {
+				BlackRookMoveRules.generateMoves(shogi.BlackRook, gs, list)
 			} else {
-				WhiteRookMoveRules.generateMoves(material.WhiteRook, gs, list)
+				WhiteRookMoveRules.generateMoves(shogi.WhiteRook, gs, list)
 			}
 		})
 	}
