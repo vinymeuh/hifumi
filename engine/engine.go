@@ -7,9 +7,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/vinymeuh/hifumi/shogi"
+	"github.com/vinymeuh/hifumi/shogi/movegen"
 )
 
 var info = struct {
@@ -41,6 +44,12 @@ var info = struct {
 	},
 }
 
+var status = struct {
+	stopThinking chan struct{}
+}{
+	stopThinking: nil,
+}
+
 var position *shogi.Position
 
 // Main Loop
@@ -69,6 +78,15 @@ func Run(version string, in io.Reader, out io.Writer) {
 			setoptionHandler(out, strings.Fields(text))
 		case "position":
 			positionHandler(out, strings.Fields(text))
+		case "go":
+			if status.stopThinking == nil {
+				goHandler(out, strings.Fields(text))
+			}
+		case "stop":
+			if status.stopThinking != nil {
+				close(status.stopThinking)
+				status.stopThinking = nil
+			}
 		case "quit":
 			os.Exit(0)
 		// Non USI commands
@@ -162,14 +180,48 @@ func positionHandler(out io.Writer, args []string) {
 	position = pos
 }
 
+func goHandler(out io.Writer, args []string) {
+	// parse args if any
+	for i := 1; i < len(args); i++ {
+		switch args[i] {
+		case "perft":
+			i++
+			if i >= len(args) {
+				fmt.Fprintln(out, "Invalid command: go perft <depth>")
+				return
+			}
+			depth, err := strconv.Atoi(args[i])
+			if err != nil {
+				fmt.Fprintln(out, "Invalid command: go perft <depth>")
+				return
+			}
+			result := movegen.Perft(position, depth)
+			moves := make([]string, 0, result.MovesCount)
+			for m := range result.Moves {
+				moves = append(moves, m)
+			}
+			sort.Strings(moves)
+			for _, move := range moves {
+				fmt.Fprintf(out, "%s: %d\n", move, result.Moves[move])
+			}
+			fmt.Fprintf(out, "\nMoves: %d\n", result.MovesCount)
+			fmt.Fprintf(out, "Nodes searched: %d\n", result.NodesCount)
+			fmt.Fprintf(out, "Duration: %s\n", result.Duration)
+			return
+		}
+	}
+}
+
 func showHandler(out io.Writer, args []string) {
-	if len(args) != 2 || args[1] != "sfen" {
-		fmt.Fprintln(out, "Invalid command: show sfen")
+	if len(args) != 2 || (args[1] != "board" && args[1] != "sfen") {
+		fmt.Fprintln(out, "Invalid command: show board|sfen")
 		return
 	}
 
 	switch args[1] {
 	case "sfen":
 		fmt.Fprintln(out, position.Sfen())
+	case "board":
+		fmt.Fprintln(out, position.Board)
 	}
 }

@@ -20,7 +20,7 @@ type Position struct {
 	BBbyPiece [COLORS * PIECE_TYPES]Bitboard
 }
 
-// New creates an empty Gamestate with no pieces on the board or in the hands.
+// New creates an empty Position with no pieces on the board or in the hands.
 // Should rarely called directly, NewFromSfen is the constructor you are looking for.
 func NewPosition() *Position {
 	p := Position{
@@ -38,7 +38,7 @@ func NewPosition() *Position {
 	return &p
 }
 
-// ApplyMove updates Gamestate based on provided Move WITHOUT any rules check,
+// ApplyMove updates Position based on provided Move WITHOUT any rules check,
 // it is the responsability of the caller to provide a legal move.
 func (p *Position) ApplyMove(m Move) {
 	flags, from, to, mPiece := m.GetAll()
@@ -76,7 +76,7 @@ func (p *Position) ApplyMove(m Move) {
 	p.Side = p.Side.Opponent()
 }
 
-// UnapplyMove updates position based on provided Move WITHOUT any rules check,
+// UnapplyMove updates Position based on provided Move WITHOUT any rules check,
 // it is the responsability of the caller to provide a legal move.
 func (p *Position) UnapplyMove(m Move) {
 	flags, from, to, mPiece := m.GetAll()
