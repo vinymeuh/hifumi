@@ -5,14 +5,14 @@ package movegen
 import (
 	"time"
 
-	"github.com/vinymeuh/hifumi/shogi/gamestate"
+	"github.com/vinymeuh/hifumi/shogi"
 )
 
 type PerftResult struct {
-	Moves     map[string]int
-	Duration  time.Duration
-	MoveCount int
-	NodeCount int
+	Moves      map[string]int
+	Duration   time.Duration
+	MovesCount int
+	NodesCount int
 }
 
 func NewPerftResult() *PerftResult {
@@ -21,7 +21,7 @@ func NewPerftResult() *PerftResult {
 	return &result
 }
 
-func Perft(gs *gamestate.Gamestate, depth int) *PerftResult {
+func Perft(gs *shogi.Position, depth int) *PerftResult {
 	if depth < 1 {
 		depth = 1
 	}
@@ -31,15 +31,15 @@ func Perft(gs *gamestate.Gamestate, depth int) *PerftResult {
 	perftRoot(gs, depth, result)
 	result.Duration = time.Since(startTime)
 
-	result.MoveCount = len(result.Moves)
+	result.MovesCount = len(result.Moves)
 	for _, node := range result.Moves {
-		result.NodeCount += node
+		result.NodesCount += node
 	}
 
 	return result
 }
 
-func perftRoot(gs *gamestate.Gamestate, depth int, result *PerftResult) {
+func perftRoot(gs *shogi.Position, depth int, result *PerftResult) {
 	var list MoveList
 	GeneratePseudoLegalMoves(gs, &list)
 	for i := 0; i < list.Count; i++ {
@@ -51,7 +51,7 @@ func perftRoot(gs *gamestate.Gamestate, depth int, result *PerftResult) {
 	}
 }
 
-func perftLeaf(gs *gamestate.Gamestate, depth int) int {
+func perftLeaf(gs *shogi.Position, depth int) int {
 	if depth == 0 {
 		return 1
 	}

@@ -4,7 +4,6 @@ package movegen
 
 import (
 	"github.com/vinymeuh/hifumi/shogi"
-	"github.com/vinymeuh/hifumi/shogi/gamestate"
 )
 
 // AttacksTable is an array of bitboard indexed by square, used for non sliding pieces.
@@ -31,7 +30,7 @@ type PieceMoveRules struct {
 	AttacksTable AttacksTable
 }
 
-func (rules PieceMoveRules) generateMoves(piece shogi.Piece, gs *gamestate.Gamestate, list *MoveList) {
+func (rules PieceMoveRules) generateMoves(piece shogi.Piece, gs *shogi.Position, list *MoveList) {
 	mycolor := piece.Color() // gs.Side ?
 	myopponent := mycolor.Opponent()
 	mypieces := gs.BBbyPiece[piece]
@@ -50,16 +49,16 @@ func (rules PieceMoveRules) generateMoves(piece shogi.Piece, gs *gamestate.Games
 			case gs.BBbyColor[myopponent].GetBit(to) == 1: // capture
 				captured := gs.Board[to]
 				if canPromote {
-					list.add(gamestate.NewMove(
-						gamestate.MoveFlagMove|gamestate.MoveFlagPromotion|gamestate.MoveFlagCapture,
+					list.add(shogi.NewMove(
+						shogi.MoveFlagMove|shogi.MoveFlagPromotion|shogi.MoveFlagCapture,
 						from,
 						to,
 						captured,
 					))
 				}
 				if !mustPromote {
-					list.add(gamestate.NewMove(
-						gamestate.MoveFlagMove|gamestate.MoveFlagCapture,
+					list.add(shogi.NewMove(
+						shogi.MoveFlagMove|shogi.MoveFlagCapture,
 						from,
 						to,
 						captured,
@@ -68,16 +67,16 @@ func (rules PieceMoveRules) generateMoves(piece shogi.Piece, gs *gamestate.Games
 
 			case gs.BBbyColor[mycolor].GetBit(to) == 0: // empty destination
 				if canPromote {
-					list.add(gamestate.NewMove(
-						gamestate.MoveFlagMove|gamestate.MoveFlagPromotion,
+					list.add(shogi.NewMove(
+						shogi.MoveFlagMove|shogi.MoveFlagPromotion,
 						from,
 						to,
 						shogi.NoPiece,
 					))
 				}
 				if !mustPromote {
-					list.add(gamestate.NewMove(
-						gamestate.MoveFlagMove,
+					list.add(shogi.NewMove(
+						shogi.MoveFlagMove,
 						from,
 						to,
 						shogi.NoPiece,

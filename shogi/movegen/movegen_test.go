@@ -7,14 +7,13 @@ import (
 	"testing"
 
 	"github.com/vinymeuh/hifumi/shogi"
-	"github.com/vinymeuh/hifumi/shogi/gamestate"
 )
 
-type generateMovesFunc func(gs *gamestate.Gamestate, list *MoveList)
+type generateMovesFunc func(gs *shogi.Position, list *MoveList)
 
 func testRun(t *testing.T, startPos string, expected []string, generateFunc generateMovesFunc) {
 	t.Run(startPos, func(t *testing.T) {
-		gs, _ := gamestate.NewFromSfen(startPos)
+		gs, _ := shogi.NewPositionFromSfen(startPos)
 		var list MoveList
 		generateFunc(gs, &list)
 
@@ -44,13 +43,13 @@ func TestPawn(t *testing.T) {
 		expected []string
 	}{
 		{
-			gamestate.StartPos,
+			shogi.StartPos,
 			[]string{"1g1f", "2g2f", "3g3f", "4g4f", "5g5f", "6g6f", "7g7f", "8g8f", "9g9f"},
 		},
 	}
 
 	for _, tc := range tests {
-		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
 				BlackPawnMoveRules.generateMoves(shogi.BlackPawn, gs, list)
 			} else {
@@ -66,7 +65,7 @@ func TestLance(t *testing.T) {
 		expected []string
 	}{
 		{
-			gamestate.StartPos,
+			shogi.StartPos,
 			[]string{"1i1h", "9i9h"},
 		},
 		{
@@ -76,7 +75,7 @@ func TestLance(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
 				BlackLanceMoveRules.generateMoves(shogi.BlackLance, gs, list)
 			} else {
@@ -92,7 +91,7 @@ func TestKnight(t *testing.T) {
 		expected []string
 	}{
 		{
-			gamestate.StartPos,
+			shogi.StartPos,
 			[]string{},
 		},
 		{
@@ -110,7 +109,7 @@ func TestKnight(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
 				BlackKnightMoveRules.generateMoves(shogi.BlackKnight, gs, list)
 			} else {
@@ -126,7 +125,7 @@ func TestSilver(t *testing.T) {
 		expected []string
 	}{
 		{
-			gamestate.StartPos,
+			shogi.StartPos,
 			[]string{"7i7h", "7i6h", "3i3h", "3i4h"},
 		},
 		{
@@ -136,7 +135,7 @@ func TestSilver(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
 				BlackSilverMoveRules.generateMoves(shogi.BlackSilver, gs, list)
 			} else {
@@ -152,7 +151,7 @@ func TestGold(t *testing.T) {
 		expected []string
 	}{
 		{
-			gamestate.StartPos,
+			shogi.StartPos,
 			[]string{"6i7h", "6i6h", "6i5h", "4i5h", "4i4h", "4i3h"},
 		},
 		{
@@ -162,7 +161,7 @@ func TestGold(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
 				BlackGoldMoveRules.generateMoves(shogi.BlackGold, gs, list)
 			} else {
@@ -178,7 +177,7 @@ func TestKing(t *testing.T) {
 		expected []string
 	}{
 		{
-			gamestate.StartPos,
+			shogi.StartPos,
 			[]string{"5i6h", "5i5h", "5i4h"},
 		},
 		{
@@ -188,7 +187,7 @@ func TestKing(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
 				KingMoveRules.generateMoves(shogi.BlackKing, gs, list)
 			} else {
@@ -204,7 +203,7 @@ func TestBishop(t *testing.T) {
 		expected []string
 	}{
 		{
-			gamestate.StartPos,
+			shogi.StartPos,
 			[]string{},
 		},
 		{
@@ -214,7 +213,7 @@ func TestBishop(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
 				BlackBishopMoveRules.generateMoves(shogi.BlackBishop, gs, list)
 			} else {
@@ -230,7 +229,7 @@ func TestRook(t *testing.T) {
 		expected []string
 	}{
 		{
-			gamestate.StartPos,
+			shogi.StartPos,
 			[]string{"2h7h", "2h6h", "2h5h", "2h4h", "2h3h", "2h1h"},
 		},
 		{
@@ -240,7 +239,7 @@ func TestRook(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
 				BlackRookMoveRules.generateMoves(shogi.BlackRook, gs, list)
 			} else {
@@ -256,7 +255,7 @@ func TestDrops(t *testing.T) {
 		expected []string
 	}{
 		{
-			gamestate.StartPos,
+			shogi.StartPos,
 			[]string{},
 		},
 		{
@@ -291,7 +290,7 @@ func TestDrops(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		testRun(t, tc.startPos, tc.expected, func(gs *gamestate.Gamestate, list *MoveList) {
+		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			GenerateDrops(gs, list)
 		})
 	}

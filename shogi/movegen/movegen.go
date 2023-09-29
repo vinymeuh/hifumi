@@ -4,19 +4,18 @@ package movegen
 
 import (
 	"github.com/vinymeuh/hifumi/shogi"
-	"github.com/vinymeuh/hifumi/shogi/gamestate"
 )
 
-// maxMoves is the maximum number of moves we expect to generate from a given gamestate.
+// maxMoves is the maximum number of moves we expect to generate from a given shogi.
 const maxMoves = 256
 
 // MoveList is a list of Moves with a fixed maximum size.
 type MoveList struct {
-	Moves [maxMoves]gamestate.Move // Holds the generated moves
-	Count int                      // The current count of moves in the list
+	Moves [maxMoves]shogi.Move // Holds the generated moves
+	Count int                  // The current count of moves in the list
 }
 
-func (ml *MoveList) add(move gamestate.Move) {
+func (ml *MoveList) add(move shogi.Move) {
 	ml.Moves[ml.Count] = move
 	ml.Count++
 	if ml.Count == maxMoves {
@@ -25,7 +24,7 @@ func (ml *MoveList) add(move gamestate.Move) {
 }
 
 // GeneratePseudoLegalMoves generates pseudo-legal moves for the given game state and adds them to the move list.
-func GeneratePseudoLegalMoves(gs *gamestate.Gamestate, list *MoveList) {
+func GeneratePseudoLegalMoves(gs *shogi.Position, list *MoveList) {
 	if gs.Side == shogi.Black {
 		BlackPawnMoveRules.generateMoves(shogi.BlackPawn, gs, list)
 		BlackLanceMoveRules.generateMoves(shogi.BlackLance, gs, list)
@@ -67,7 +66,7 @@ func GeneratePseudoLegalMoves(gs *gamestate.Gamestate, list *MoveList) {
 	}
 }
 
-func GenerateDrops(gs *gamestate.Gamestate, list *MoveList) {
+func GenerateDrops(gs *shogi.Position, list *MoveList) {
 	myColor := gs.Side
 	myHand := gs.Hands[myColor]
 	emptySquares := gs.BBbyColor[shogi.Black].Or(gs.BBbyColor[shogi.White]).Not()
@@ -113,11 +112,11 @@ func GenerateDrops(gs *gamestate.Gamestate, list *MoveList) {
 	}
 }
 
-func addDrops(p shogi.Piece, empty_squares shogi.Bitboard, list *MoveList) {
-	for empty_squares != shogi.Zero {
-		to := shogi.Square(empty_squares.Lsb())
-		list.add(gamestate.NewMove(gamestate.MoveFlagDrop, 0, to, p))
-		empty_squares = empty_squares.ClearBit(to)
+func addDrops(p shogi.Piece, emptySquares shogi.Bitboard, list *MoveList) {
+	for emptySquares != shogi.Zero {
+		to := shogi.Square(emptySquares.Lsb())
+		list.add(shogi.NewMove(shogi.MoveFlagDrop, 0, to, p))
+		emptySquares = emptySquares.ClearBit(to)
 	}
 }
 

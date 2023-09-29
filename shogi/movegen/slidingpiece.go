@@ -6,7 +6,6 @@ import (
 	"math/rand"
 
 	"github.com/vinymeuh/hifumi/shogi"
-	"github.com/vinymeuh/hifumi/shogi/gamestate"
 )
 
 // https://www.chessprogramming.org/Looking_for_Magics
@@ -172,7 +171,7 @@ type SlidingPieceMoveRules struct {
 }
 
 // generateMoves generates moves for a sliding piece on the board.
-func (rules SlidingPieceMoveRules) generateMoves(piece shogi.Piece, gs *gamestate.Gamestate, list *MoveList) {
+func (rules SlidingPieceMoveRules) generateMoves(piece shogi.Piece, gs *shogi.Position, list *MoveList) {
 	mycolor := piece.Color() // gs.Side ?
 	myopponent := mycolor.Opponent()
 	mypieces := gs.BBbyPiece[piece]
@@ -195,16 +194,16 @@ func (rules SlidingPieceMoveRules) generateMoves(piece shogi.Piece, gs *gamestat
 			case gs.BBbyColor[myopponent].GetBit(to) == 1: // capture
 				captured := gs.Board[to]
 				if canPromote {
-					list.add(gamestate.NewMove(
-						gamestate.MoveFlagMove|gamestate.MoveFlagPromotion|gamestate.MoveFlagCapture,
+					list.add(shogi.NewMove(
+						shogi.MoveFlagMove|shogi.MoveFlagPromotion|shogi.MoveFlagCapture,
 						from,
 						to,
 						captured,
 					))
 				}
 				if !mustPromote {
-					list.add(gamestate.NewMove(
-						gamestate.MoveFlagMove|gamestate.MoveFlagCapture,
+					list.add(shogi.NewMove(
+						shogi.MoveFlagMove|shogi.MoveFlagCapture,
 						from,
 						to,
 						captured,
@@ -213,16 +212,16 @@ func (rules SlidingPieceMoveRules) generateMoves(piece shogi.Piece, gs *gamestat
 
 			case gs.BBbyColor[mycolor].GetBit(to) == 0: // empty destination
 				if canPromote {
-					list.add(gamestate.NewMove(
-						gamestate.MoveFlagMove|gamestate.MoveFlagPromotion,
+					list.add(shogi.NewMove(
+						shogi.MoveFlagMove|shogi.MoveFlagPromotion,
 						from,
 						to,
 						shogi.NoPiece,
 					))
 				}
 				if !mustPromote {
-					list.add(gamestate.NewMove(
-						gamestate.MoveFlagMove,
+					list.add(shogi.NewMove(
+						shogi.MoveFlagMove,
 						from,
 						to,
 						shogi.NoPiece,

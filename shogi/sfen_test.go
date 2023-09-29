@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2023 VinyMeuh
 // SPDX-License-Identifier: MIT
-package gamestate
+package shogi
 
 import (
 	"testing"
@@ -17,7 +17,7 @@ func TestSFEN(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.sfen, func(t *testing.T) {
-			g, err := NewFromSfen(tc.sfen)
+			g, err := NewPositionFromSfen(tc.sfen)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

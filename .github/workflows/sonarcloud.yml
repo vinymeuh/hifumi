@@ -5,8 +5,8 @@ on:
   push:
     branches:
       - main
-      - 'branch/**'
-      - 'dev/**'
+      - develop
+      - release/**
   pull_request:
     branches:
       - main

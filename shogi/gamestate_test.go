@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2023 VinyMeuh
 // SPDX-License-Identifier: MIT
-package gamestate
+package shogi
 
 import (
 	"encoding/json"
@@ -29,7 +29,7 @@ func TestApplyUnapplyMove(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.startPos, func(t *testing.T) {
-			g, err := NewFromSfen(tc.startPos)
+			g, err := NewPositionFromSfen(tc.startPos)
 			if err != nil {
 				t.Fatalf("NewFromSfen: %v", err)
 			}
@@ -57,7 +57,7 @@ func TestApplyUnapplyMoveFromJson(t *testing.T) {
 
 		t.Run(testname, func(t *testing.T) {
 			kifu := parseJsonKifuFile(t, path)
-			g, err := NewFromSfen(kifu.StartPos)
+			g, err := NewPositionFromSfen(kifu.StartPos)
 			if err != nil {
 				t.Fatalf("Unexpected error setting startpos: %v", err)
 			}

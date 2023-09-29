@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2023 VinyMeuh
 // SPDX-License-Identifier: MIT
-package gamestate
+package shogi
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/vinymeuh/hifumi/shogi"
 )
 
 // MoveFlags represents the type of a Shogi Move.
@@ -32,7 +30,7 @@ const (
 type Move uint
 
 // NewMove creates a new Move with the provided MoveFlags, From, To, and Piece.
-func NewMove(flags uint, from shogi.Square, to shogi.Square, piece shogi.Piece) Move {
+func NewMove(flags uint, from Square, to Square, piece Piece) Move {
 	m := Move(flags&0x0F) << 0
 	m |= Move(from&0xFF) << 4
 	m |= Move(to&0xFF) << 12
@@ -46,22 +44,22 @@ func (m Move) Flags() uint {
 }
 
 // From returns the From part of the Move.
-func (m Move) From() shogi.Square {
-	return shogi.Square((m >> 4) & 0xFF)
+func (m Move) From() Square {
+	return Square((m >> 4) & 0xFF)
 }
 
 // To returns the To part of the Move.
-func (m Move) To() shogi.Square {
-	return shogi.Square((m >> 12) & 0xFF)
+func (m Move) To() Square {
+	return Square((m >> 12) & 0xFF)
 }
 
 // Piece returns the Piece part of the Move.
-func (m Move) Piece() shogi.Piece {
-	return shogi.Piece(uint((m >> 20) & 0x3F))
+func (m Move) Piece() Piece {
+	return Piece(uint((m >> 20) & 0x3F))
 }
 
 // GetAll returns the four parts of the Move.
-func (m Move) GetAll() (uint, shogi.Square, shogi.Square, shogi.Piece) {
+func (m Move) GetAll() (uint, Square, Square, Piece) {
 	flags := m.Flags()
 	from := m.From()
 	to := m.To()
@@ -69,7 +67,7 @@ func (m Move) GetAll() (uint, shogi.Square, shogi.Square, shogi.Piece) {
 	return flags, from, to, piece
 }
 
-// String returns the move as a USI string.
+// String returns the move as a USI strinp.
 func (m Move) String() string {
 	flags := m.Flags()
 	switch flags {
@@ -83,39 +81,39 @@ func (m Move) String() string {
 	}
 }
 
-// NewMoveFromUsi creates a new Move from a USI move string.
-func NewMoveFromUsi(g *Gamestate, s string) Move {
+// NewMoveFromUsi creates a new Move from a USI move strinp.
+func NewMoveFromUsi(p *Position, s string) Move {
 	switch {
 	case regexMove.Match([]byte(s)):
-		from := shogi.NewSquareFromString(s[0:2])
-		pFrom := g.Board[from]
-		if pFrom == shogi.NoPiece || pFrom.Color() != g.Side {
+		from := NewSquareFromString(s[0:2])
+		pFrom := p.Board[from]
+		if pFrom == NoPiece || pFrom.Color() != p.Side {
 			return Move(0)
 		}
-		to := shogi.NewSquareFromString(s[2:4])
-		pTo := g.Board[to]
+		to := NewSquareFromString(s[2:4])
+		pTo := p.Board[to]
 
 		flags := MoveFlagMove
 		if len(s) == 5 {
 			flags |= MoveFlagPromotion
 		}
 		switch {
-		case pTo == shogi.NoPiece:
+		case pTo == NoPiece:
 			return NewMove(flags, from, to, 0)
-		case pTo.Color() != g.Side:
+		case pTo.Color() != p.Side:
 			return NewMove(flags|MoveFlagCapture, from, to, pTo)
 		default:
 			return Move(0)
 		}
 	case regexDrop.Match([]byte(s)):
-		var p shogi.Piece
-		if g.Side == shogi.Black {
-			p, _ = shogi.NewPiece(s[0:1])
+		var pc Piece
+		if p.Side == Black {
+			pc, _ = NewPiece(s[0:1])
 		} else {
-			p, _ = shogi.NewPiece(strings.ToLower(s[0:1]))
+			pc, _ = NewPiece(strings.ToLower(s[0:1]))
 		}
-		to := shogi.NewSquareFromString(s[2:4])
-		return NewMove(MoveFlagDrop, 0, to, p)
+		to := NewSquareFromString(s[2:4])
+		return NewMove(MoveFlagDrop, 0, to, pc)
 	}
 	return Move(0)
 }
