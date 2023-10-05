@@ -27,7 +27,6 @@ func TestPerft(t *testing.T) {
 		tests := parseJsonFile(t, path)
 
 		for _, tc := range tests.Tests {
-			fail := false
 			t.Run(fmt.Sprintf("%s_depth_%d", testName, tc.Depth), func(t *testing.T) {
 				gs, err := shogi.NewPositionFromSfen(tests.StartPos)
 				if err != nil {
@@ -37,25 +36,29 @@ func TestPerft(t *testing.T) {
 
 				// Moves count
 				if tests.Moves != result.MovesCount {
-					fail = true
 					t.Errorf("\nMoves count mismatch: expected=%d, got=%d", tests.Moves, result.MovesCount)
 				}
 
-				// Drops count
+				// Drops & Promotions count
 				drops := 0
+				promotions := 0
 				for m := range result.Moves {
 					if strings.Contains(m, "*") {
 						drops++
 					}
+					if strings.HasSuffix(m, "+") {
+						promotions++
+					}
 				}
 				if tests.Drops != drops {
-					fail = true
 					t.Errorf("\nDrops count mismatch: expected=%d, got=%d", tests.Drops, drops)
+				}
+				if tests.Promotions != promotions {
+					t.Errorf("\nPromotions count mismatch: expected=%d, got=%d", tests.Promotions, promotions)
 				}
 
 				// Nodes count
 				if tc.Nodes != result.NodesCount {
-					fail = true
 					t.Errorf("\nNodes count mismatch: expected=%d, got=%d", tc.Nodes, result.NodesCount)
 				}
 
@@ -64,27 +67,23 @@ func TestPerft(t *testing.T) {
 					nodes, ok := result.Moves[expectedMove]
 					if ok {
 						if expectedNodes != nodes {
-							fail = true
 							t.Errorf("\nNodes count mismatch for move %s: expected=%d, got=%d", expectedMove, expectedNodes, nodes)
 						}
 					} else {
-						fail = true
 						t.Errorf("\nMissing move %s", expectedMove)
 					}
 				}
 			})
-			if fail {
-				t.FailNow()
-			}
 		}
 	}
 }
 
 type jsonData struct { //nolint:govet
-	StartPos string           `json:"startpos"`
-	Moves    int              `json:"moves"`
-	Drops    int              `json:"drops"`
-	Tests    []jsonDataDetail `json:"tests"`
+	StartPos   string           `json:"startpos"`
+	Moves      int              `json:"moves"`
+	Drops      int              `json:"drops"`
+	Promotions int              `json:"promotions"`
+	Tests      []jsonDataDetail `json:"tests"`
 }
 
 type jsonDataDetail struct { //nolint:govet
