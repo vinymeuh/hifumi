@@ -20,6 +20,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: './go.mod'
-      - name: Unit Tests
-        run: go test -coverprofile=coverage.out -covermode=count ./shogi/... ./engine/...
-
+      - name: Run Tests
+        run: go test -coverprofile=coverage.out -covermode=count ./...
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

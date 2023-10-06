@@ -241,9 +241,9 @@ func TestRook(t *testing.T) {
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
-				BlackRookMoveRules.generateMoves(shogi.BlackRook, gs, list)
+				BlackRookMoves(gs, list)
 			} else {
-				WhiteRookMoveRules.generateMoves(shogi.WhiteRook, gs, list)
+				WhiteRookMoves(gs, list)
 			}
 		})
 	}
