@@ -12,13 +12,13 @@ func TestGetToTheEdge(t *testing.T) {
 	tests := []struct { //nolint:govet
 		label    string
 		from     shogi.Square
-		shift    Shift
+		shift    shift
 		expected bool
 	}{
 		{
 			"test",
 			shogi.SQ9i,
-			Shift{Rank: North},
+			shift{rank: north},
 			false,
 		},
 	}

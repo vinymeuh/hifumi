@@ -13,23 +13,23 @@ func TestAttacksTable(t *testing.T) {
 		expected string
 	}{
 		{
-			"BlackPawnMoveRules.AttacksTable[0]",
-			BlackPawnMoveRules.AttacksTable[0].StringBoard(),
+			"BlackPawnMoveRules.attacks[0]",
+			blackPawnMoveRules.attacks[0].StringBoard(),
 			"000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000",
 		},
 		{
-			"BlackPawnMoveRules.AttacksTable[8]",
-			BlackPawnMoveRules.AttacksTable[8].StringBoard(),
+			"BlackPawnMoveRules.attacks[8]",
+			blackPawnMoveRules.attacks[8].StringBoard(),
 			"000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000",
 		},
 		{
-			"BlackPawnMoveRules.AttacksTable[72]",
-			BlackPawnMoveRules.AttacksTable[72].StringBoard(),
+			"BlackPawnMoveRules.attacks[72]",
+			blackPawnMoveRules.attacks[72].StringBoard(),
 			"000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n100000000\n000000000",
 		},
 		{
-			"BlackPawnMoveRules.AttacksTable[80]",
-			BlackPawnMoveRules.AttacksTable[80].StringBoard(),
+			"BlackPawnMoveRules.attacks[80]",
+			blackPawnMoveRules.attacks[80].StringBoard(),
 			"000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000001\n000000000",
 		},
 	}

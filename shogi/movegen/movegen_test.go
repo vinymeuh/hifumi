@@ -51,9 +51,9 @@ func TestPawn(t *testing.T) {
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
-				BlackPawnMoveRules.generateMoves(shogi.BlackPawn, gs, list)
+				blackPawnMoveRules.generateMoves(shogi.BlackPawn, gs, list)
 			} else {
-				WhitePawnMoveRules.generateMoves(shogi.WhitePawn, gs, list)
+				whitePawnMoveRules.generateMoves(shogi.WhitePawn, gs, list)
 			}
 		})
 	}
@@ -77,9 +77,9 @@ func TestLance(t *testing.T) {
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
-				BlackLanceMoveRules.generateMoves(shogi.BlackLance, gs, list)
+				blackLanceMoveRules.generateMoves(shogi.BlackLance, gs, list)
 			} else {
-				WhiteLanceMoveRules.generateMoves(shogi.WhiteLance, gs, list)
+				whiteLanceMoveRules.generateMoves(shogi.WhiteLance, gs, list)
 			}
 		})
 	}
@@ -111,9 +111,9 @@ func TestKnight(t *testing.T) {
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
-				BlackKnightMoveRules.generateMoves(shogi.BlackKnight, gs, list)
+				blackKnightMoveRules.generateMoves(shogi.BlackKnight, gs, list)
 			} else {
-				WhiteKnightMoveRules.generateMoves(shogi.WhiteKnight, gs, list)
+				whiteKnightMoveRules.generateMoves(shogi.WhiteKnight, gs, list)
 			}
 		})
 	}
@@ -137,9 +137,9 @@ func TestSilver(t *testing.T) {
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
-				BlackSilverMoveRules.generateMoves(shogi.BlackSilver, gs, list)
+				blackSilverMoveRules.generateMoves(shogi.BlackSilver, gs, list)
 			} else {
-				WhiteSilverMoveRules.generateMoves(shogi.WhiteSilver, gs, list)
+				whiteSilverMoveRules.generateMoves(shogi.WhiteSilver, gs, list)
 			}
 		})
 	}
@@ -163,9 +163,9 @@ func TestGold(t *testing.T) {
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
-				BlackGoldMoveRules.generateMoves(shogi.BlackGold, gs, list)
+				blackGoldMoveRules.generateMoves(shogi.BlackGold, gs, list)
 			} else {
-				WhiteGoldMoveRules.generateMoves(shogi.WhiteGold, gs, list)
+				whiteGoldMoveRules.generateMoves(shogi.WhiteGold, gs, list)
 			}
 		})
 	}
@@ -189,9 +189,9 @@ func TestKing(t *testing.T) {
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
-				KingMoveRules.generateMoves(shogi.BlackKing, gs, list)
+				kingMoveRules.generateMoves(shogi.BlackKing, gs, list)
 			} else {
-				KingMoveRules.generateMoves(shogi.WhiteKing, gs, list)
+				kingMoveRules.generateMoves(shogi.WhiteKing, gs, list)
 			}
 		})
 	}
@@ -215,9 +215,9 @@ func TestBishop(t *testing.T) {
 	for _, tc := range tests {
 		testRun(t, tc.startPos, tc.expected, func(gs *shogi.Position, list *MoveList) {
 			if gs.Side == shogi.Black {
-				BlackBishopMoveRules.generateMoves(shogi.BlackBishop, gs, list)
+				blackBishopMoveRules.generateMoves(shogi.BlackBishop, gs, list)
 			} else {
-				WhiteBishopMoveRules.generateMoves(shogi.WhiteBishop, gs, list)
+				whiteBishopMoveRules.generateMoves(shogi.WhiteBishop, gs, list)
 			}
 		})
 	}

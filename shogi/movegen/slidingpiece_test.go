@@ -14,17 +14,17 @@ func TestAttacksMaskTable(t *testing.T) {
 	}{
 		{
 			"BlackLanceAttacksMask(72)",
-			BlackLanceAttacksMask(72).StringBoard(),
+			blackLanceAttacksMask(72).StringBoard(),
 			"000000000\n100000000\n100000000\n100000000\n100000000\n100000000\n100000000\n100000000\n000000000",
 		},
 		{
 			"BlackLanceAttacksMask(80)",
-			BlackLanceAttacksMask(80).StringBoard(),
+			blackLanceAttacksMask(80).StringBoard(),
 			"000000000\n000000001\n000000001\n000000001\n000000001\n000000001\n000000001\n000000001\n000000000",
 		},
 		{
 			"BishopAttacksMask(40)",
-			BishopAttacksMask(40).StringBoard(),
+			bishopAttacksMask(40).StringBoard(),
 			"000000000\n010000010\n001000100\n000101000\n000000000\n000101000\n001000100\n010000010\n000000000",
 		},
 		// {
