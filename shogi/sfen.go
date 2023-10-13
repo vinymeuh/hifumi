@@ -129,7 +129,7 @@ func (p *Position) sfenParseBoard(str string) error {
 			if err != nil {
 				return fmt.Errorf("SFEN invalid character in board")
 			}
-			p.setPiece(k, Square(sq))
+			p.setPiece(k, SquareIndex(sq))
 		}
 	}
 	return nil

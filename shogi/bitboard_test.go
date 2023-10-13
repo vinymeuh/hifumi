@@ -50,7 +50,7 @@ func TestGetBit(t *testing.T) {
 		bb := Bitboard{tc.bb[1], tc.bb[0]}
 		for j := uint(0); j < SQUARES; j++ {
 			t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
-				v := bb.GetBit(Square(j))
+				v := bb.GetBit(SquareIndex(j))
 				inGet1 := slices.Contains(tc.gets1, j)
 				switch {
 				case inGet1 && v == 0:

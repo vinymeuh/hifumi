@@ -33,7 +33,7 @@ func (b Bitboard) StringBoard() string {
 		if i != 0 && i%9 == 0 {
 			board += "\n"
 		}
-		if b.GetBit(Square(i)) == 1 {
+		if b.GetBit(SquareIndex(i)) == 1 {
 			board += "1"
 		} else {
 			board += "0"
@@ -43,7 +43,7 @@ func (b Bitboard) StringBoard() string {
 }
 
 // SetBit returns a new Bitboard with the bit at the given square set to 1.
-func (b Bitboard) SetBit(sq Square) Bitboard {
+func (b Bitboard) SetBit(sq SquareIndex) Bitboard {
 	mask := squareSetMask[sq]
 	return Bitboard{
 		b.Low | mask.Low,
@@ -52,7 +52,7 @@ func (b Bitboard) SetBit(sq Square) Bitboard {
 }
 
 // ClearBit returns a new Bitboard with the bit at the given square set to 0.
-func (b Bitboard) ClearBit(sq Square) Bitboard {
+func (b Bitboard) ClearBit(sq SquareIndex) Bitboard {
 	mask := squareSetMask[sq]
 	return Bitboard{
 		b.Low &^ mask.Low,
@@ -61,7 +61,7 @@ func (b Bitboard) ClearBit(sq Square) Bitboard {
 }
 
 // GetBit returns the value of the bit at the given square.
-func (b Bitboard) GetBit(sq Square) uint {
+func (b Bitboard) GetBit(sq SquareIndex) uint {
 	if sq < 64 {
 		return uint((b.Low >> sq) & 1)
 	}
@@ -149,3 +149,11 @@ func init() {
 		squareSetMask[64+i] = Bitboard{0, 1 << i}
 	}
 }
+
+var (
+	Rank1Mask = Bitboard{High: 0b00000000000000000, Low: 0b0000000000000000000000000000000000000000000000000000000111111111}
+	Rank9Mask = Bitboard{High: 0b11111111100000000, Low: 0b0000000000000000000000000000000000000000000000000000000000000000}
+
+	File1Mask = Bitboard{High: 0b10000000010000000, Low: 0b0100000000100000000100000000100000000100000000100000000100000000}
+	File9Mask = Bitboard{High: 0b00000000100000000, Low: 0b1000000001000000001000000001000000001000000001000000001000000001}
+)

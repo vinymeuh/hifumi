@@ -3,31 +3,26 @@
 package movegen
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/vinymeuh/hifumi/shogi"
 )
 
-func TestGetToTheEdge(t *testing.T) {
+func TestShiftFrom(t *testing.T) {
 	tests := []struct { //nolint:govet
-		label    string
-		from     shogi.Square
+		from     shogi.SquareIndex
 		shift    shift
-		expected bool
+		expected shogi.SquareIndex
 	}{
-		{
-			"test",
-			shogi.SQ9i,
-			shift{rank: north},
-			false,
-		},
+		{77, shift{north, east}, 69},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.label, func(t *testing.T) {
-			got := tc.shift.GetToTheEdge(tc.from)
+	for i, tc := range tests {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			got, _ := tc.shift.from(tc.from)
 			if tc.expected != got {
-				t.Fatalf("expected=%v, got=%v", tc.expected, got)
+				t.Fatalf("expected=%d, got=%d\n", tc.expected, got)
 			}
 		})
 	}

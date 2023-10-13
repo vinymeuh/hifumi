@@ -114,32 +114,32 @@ func (p *Position) UnapplyMove(m Move) {
 	p.Side = p.Side.Opponent()
 }
 
-func (p *Position) setPiece(piece Piece, square Square) {
+func (p *Position) setPiece(piece Piece, square SquareIndex) {
 	p.Board[square] = piece
 	p.setBitboards(piece, square)
 	p.checkBBbyColorConsistency()
 	p.checkBBbyPieceConsistency()
 }
 
-func (p *Position) setBitboards(piece Piece, square Square) {
+func (p *Position) setBitboards(piece Piece, square SquareIndex) {
 	p.BBbyColor[piece.Color()] = p.BBbyColor[piece.Color()].SetBit(square)
 	p.BBbyPiece[piece] = p.BBbyPiece[piece].SetBit(square)
 }
 
-func (p *Position) clearPiece(piece Piece, square Square) {
+func (p *Position) clearPiece(piece Piece, square SquareIndex) {
 	p.Board[square] = NoPiece
 	p.clearBitboards(piece, square)
 	p.checkBBbyColorConsistency()
 	p.checkBBbyPieceConsistency()
 }
 
-func (p *Position) clearBitboards(piece Piece, square Square) {
+func (p *Position) clearBitboards(piece Piece, square SquareIndex) {
 	p.BBbyColor[piece.Color()] = p.BBbyColor[piece.Color()].ClearBit(square)
 	p.BBbyPiece[piece] = p.BBbyPiece[piece].ClearBit(square)
 }
 
 func (p *Position) checkBBbyColorConsistency() {
-	for sq := Square(0); sq < SQUARES; sq++ {
+	for sq := SquareIndex(0); sq < SQUARES; sq++ {
 		piece := p.Board[sq]
 		switch {
 		case piece == NoPiece:
@@ -159,7 +159,7 @@ func (p *Position) checkBBbyColorConsistency() {
 }
 
 func (p *Position) checkBBbyPieceConsistency() {
-	for sq := Square(0); sq < SQUARES; sq++ {
+	for sq := SquareIndex(0); sq < SQUARES; sq++ {
 		piece := p.Board[sq]
 		switch {
 		case piece == NoPiece:

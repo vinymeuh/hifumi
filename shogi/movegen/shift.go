@@ -33,8 +33,8 @@ func (s shift) value() int {
 }
 
 // From calculates the target square after applying the shift from a given square.
-func (s shift) from(from shogi.Square) (shogi.Square, error) {
-	to := from + shogi.Square(s.value())
+func (s shift) from(from shogi.SquareIndex) (shogi.SquareIndex, error) {
+	to := from + shogi.SquareIndex(s.value())
 
 	// out of board
 	if to < 0 || to >= shogi.SQUARES {
@@ -54,59 +54,4 @@ func (s shift) from(from shogi.Square) (shogi.Square, error) {
 	}
 
 	return to, nil
-}
-
-// GetToTheEdge checks if applying the offset will reach an edge of the board.
-// If from is on an edge, returns true only if it will reach another edge.
-func (s shift) GetToTheEdge(from shogi.Square) bool {
-	to := from + shogi.Square(s.value())
-
-	// center
-	if !from.IsOnTheEdge() {
-		return to.IsOnTheEdge()
-	}
-
-	// corners
-	if from == shogi.SQ9a {
-		if to == shogi.SQ1a || to == shogi.SQ9i || to == shogi.SQ1i {
-			return true
-		}
-		return false
-	}
-	if from == shogi.SQ1a {
-		if to == shogi.SQ9a || to == shogi.SQ9i || to == shogi.SQ1i {
-			return true
-		}
-		return false
-	}
-	if from == shogi.SQ1i {
-		if to == shogi.SQ1a || to == shogi.SQ9a || to == shogi.SQ9i {
-			return true
-		}
-		return false
-	}
-	if from == shogi.SQ9i {
-		if to == shogi.SQ9a || to == shogi.SQ1a || to == shogi.SQ1i {
-			return true
-		}
-		return false
-	}
-
-	// from rank 1 & 9
-	if from.Rank() == 1 && (to.Rank() == 9 || to.File() == 1 || to.File() == 9) {
-		return true
-	}
-	if from.Rank() == 9 && (to.Rank() == 1 || to.File() == 1 || to.File() == 9) {
-		return true
-	}
-
-	// from file 1 & 9
-	if from.File() == 1 && (to.Rank() == 1 || to.Rank() == 9 || to.File() == 9) {
-		return true
-	}
-	if from.File() == 9 && (to.Rank() == 1 || to.Rank() == 9 || to.File() == 1) {
-		return true
-	}
-
-	return false
 }

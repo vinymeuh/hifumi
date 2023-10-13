@@ -11,10 +11,10 @@ import (
 	"github.com/vinymeuh/hifumi/shogi/movegen"
 )
 
-type findPieceMagicFunc func(sq shogi.Square) uint64
+type findPieceMagicFunc func(sq shogi.SquareIndex) uint64
 
 func findMagic(fn findPieceMagicFunc) {
-	for sq := shogi.Square(0); sq < shogi.SQUARES; sq++ {
+	for sq := shogi.SquareIndex(0); sq < shogi.SQUARES; sq++ {
 		magic := fn(sq)
 		if magic > 0 {
 			if sq%9 == 0 && sq != 0 {

@@ -30,7 +30,7 @@ const (
 type Move uint
 
 // NewMove creates a new Move with the provided MoveFlags, From, To, and Piece.
-func NewMove(flags uint, from Square, to Square, piece Piece) Move {
+func NewMove(flags uint, from SquareIndex, to SquareIndex, piece Piece) Move {
 	m := Move(flags&0x0F) << 0
 	m |= Move(from&0xFF) << 4
 	m |= Move(to&0xFF) << 12
@@ -44,13 +44,13 @@ func (m Move) Flags() uint {
 }
 
 // From returns the From part of the Move.
-func (m Move) From() Square {
-	return Square((m >> 4) & 0xFF)
+func (m Move) From() SquareIndex {
+	return SquareIndex((m >> 4) & 0xFF)
 }
 
 // To returns the To part of the Move.
-func (m Move) To() Square {
-	return Square((m >> 12) & 0xFF)
+func (m Move) To() SquareIndex {
+	return SquareIndex((m >> 12) & 0xFF)
 }
 
 // Piece returns the Piece part of the Move.
@@ -59,7 +59,7 @@ func (m Move) Piece() Piece {
 }
 
 // GetAll returns the four parts of the Move.
-func (m Move) GetAll() (uint, Square, Square, Piece) {
+func (m Move) GetAll() (uint, SquareIndex, SquareIndex, Piece) {
 	flags := m.Flags()
 	from := m.From()
 	to := m.To()
@@ -85,12 +85,12 @@ func (m Move) String() string {
 func NewMoveFromUsi(p *Position, s string) Move {
 	switch {
 	case regexMove.Match([]byte(s)):
-		from := NewSquareFromString(s[0:2])
+		from := NewSquareIndex(s[0:2])
 		pFrom := p.Board[from]
 		if pFrom == NoPiece || pFrom.Color() != p.Side {
 			return Move(0)
 		}
-		to := NewSquareFromString(s[2:4])
+		to := NewSquareIndex(s[2:4])
 		pTo := p.Board[to]
 
 		flags := MoveFlagMove
@@ -112,7 +112,7 @@ func NewMoveFromUsi(p *Position, s string) Move {
 		} else {
 			pc, _ = NewPiece(strings.ToLower(s[0:1]))
 		}
-		to := NewSquareFromString(s[2:4])
+		to := NewSquareIndex(s[2:4])
 		return NewMove(MoveFlagDrop, 0, to, pc)
 	}
 	return Move(0)

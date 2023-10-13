@@ -13,7 +13,7 @@ func GenerateDrops(gs *shogi.Position, list *MoveList) {
 		mypawns := gs.BBbyPiece[p]
 		mypawnfiles := shogi.Zero
 		for mypawns != shogi.Zero {
-			sq := shogi.Square(mypawns.Lsb())
+			sq := shogi.SquareIndex(mypawns.Lsb())
 			mypawnfiles = mypawnfiles.Or(fileBitboards[sq.File()-1])
 			mypawns = mypawns.ClearBit(sq)
 		}
@@ -52,7 +52,7 @@ func GenerateDrops(gs *shogi.Position, list *MoveList) {
 
 func addDrops(p shogi.Piece, emptySquares shogi.Bitboard, list *MoveList) {
 	for emptySquares != shogi.Zero {
-		to := shogi.Square(emptySquares.Lsb())
+		to := shogi.SquareIndex(emptySquares.Lsb())
 		list.add(shogi.NewMove(shogi.MoveFlagDrop, 0, to, p))
 		emptySquares = emptySquares.ClearBit(to)
 	}
