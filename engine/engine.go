@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/vinymeuh/hifumi/shogi"
-	"github.com/vinymeuh/hifumi/shogi/movegen"
 )
 
 var info = struct {
@@ -195,7 +194,7 @@ func goHandler(out io.Writer, args []string) {
 				fmt.Fprintln(out, "Invalid command: go perft <depth>")
 				return
 			}
-			result := movegen.Perft(position, depth)
+			result := shogi.Perft(position, depth)
 			moves := make([]string, 0, result.MovesCount)
 			for m := range result.Moves {
 				moves = append(moves, m)

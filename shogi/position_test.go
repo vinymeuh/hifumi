@@ -9,6 +9,8 @@ import (
 	"testing"
 )
 
+// TODO: Perhaps to be replaced with testing from engine
+
 func TestApplyUnapplyMove(t *testing.T) {
 	tests := []struct { //nolint:govet
 		startPos string
@@ -22,7 +24,7 @@ func TestApplyUnapplyMove(t *testing.T) {
 		},
 		{
 			startPos: StartPos,
-			move:     NewMove(MoveFlagMove, 60, 51, 0),
+			move:     newMove(moveFlagMove, 60, 51, 0),
 			expected: "lnsgkgsnl/1r5b1/ppppppppp/9/9/6P2/PPPPPP1PP/1B5R1/LNSGKGSNL w - 2",
 		},
 	}
@@ -46,7 +48,7 @@ func TestApplyUnapplyMove(t *testing.T) {
 }
 
 func TestApplyUnapplyMoveFromJson(t *testing.T) {
-	paths, err := filepath.Glob(filepath.Join("testdata", "*.json"))
+	paths, err := filepath.Glob(filepath.Join("position_testdata", "*.json"))
 	if err != nil {
 		t.Fatal(err)
 	}

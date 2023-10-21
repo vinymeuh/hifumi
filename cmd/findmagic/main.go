@@ -8,13 +8,12 @@ import (
 	"runtime/pprof"
 
 	"github.com/vinymeuh/hifumi/shogi"
-	"github.com/vinymeuh/hifumi/shogi/movegen"
 )
 
-type findPieceMagicFunc func(sq shogi.SquareIndex) uint64
+type findPieceMagicFunc func(sq int) uint64
 
 func findMagic(fn findPieceMagicFunc) {
-	for sq := shogi.SquareIndex(0); sq < shogi.SQUARES; sq++ {
+	for sq := 0; sq < shogi.SQUARES; sq++ {
 		magic := fn(sq)
 		if magic > 0 {
 			if sq%9 == 0 && sq != 0 {
@@ -47,19 +46,19 @@ func main() {
 	switch os.Args[1] {
 	case "blacklance":
 		fmt.Println("var blackLanceMagics = [shogi.SQUARES]uint64{")
-		findMagic(movegen.FindBlackLanceMagic)
+		findMagic(shogi.FindBlackLanceMagic)
 	case "whitelance":
 		fmt.Println("var whiteLanceMagics = [shogi.SQUARES]uint64{")
-		findMagic(movegen.FindWhiteLanceMagic)
+		findMagic(shogi.FindWhiteLanceMagic)
 	case "bishop":
 		fmt.Println("var bishopMagics = [shogi.SQUARES]uint64{")
-		findMagic(movegen.FindBishopMagic)
+		findMagic(shogi.FindBishopMagic)
 	case "rook-h":
 		fmt.Println("var rookHMagics = [shogi.SQUARES]uint64{")
-		findMagic(movegen.FindRookHMagic)
+		findMagic(shogi.FindRookHMagic)
 	case "rook-v":
 		fmt.Println("var rookVMagics = [shogi.SQUARES]uint64{")
-		findMagic(movegen.FindRookVMagic)
+		findMagic(shogi.FindRookVMagic)
 	default:
 		usage()
 		defer os.Exit(1)

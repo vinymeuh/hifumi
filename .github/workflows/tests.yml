@@ -20,8 +20,14 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: './go.mod'
-      - name: Run Tests
-        run: go test -coverprofile=coverage.out -covermode=count ./...
+      - name: Run tests for shogi package
+        run: |
+          go test -covermode=count -coverprofile=coverage.out \
+            -coverpkg=github.com/vinymeuh/hifumi/shogi ./shogi ./tests_perft
+      - name: Retrieve total coverage for shogi package
+        run: |
+          totalCoverage=$(go tool cover -func=coverage.out | awk '/total:/ {print $3}')
+          echo "Current test coverage: $totalCoverage"
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:

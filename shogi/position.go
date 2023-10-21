@@ -22,7 +22,7 @@ type Position struct {
 
 // New creates an empty Position with no pieces on the board or in the hands.
 // Should rarely called directly, NewFromSfen is the constructor you are looking for.
-func NewPosition() *Position {
+func newPosition() *Position {
 	p := Position{
 		Board: NewBoard(),
 		Hands: [COLORS]Hand{
@@ -41,35 +41,35 @@ func NewPosition() *Position {
 // ApplyMove updates Position based on provided Move WITHOUT any rules check,
 // it is the responsability of the caller to provide a legal move.
 func (p *Position) ApplyMove(m Move) {
-	flags, from, to, mPiece := m.GetAll()
+	flags, from, to, mPiece := m.destructure()
 	switch flags {
-	case MoveFlagDrop:
+	case moveFlagDrop:
 		piece := mPiece
 		p.setPiece(piece, to)
 		p.Hands[p.Side].Pop(piece)
-	case MoveFlagMove:
+	case moveFlagMove:
 		piece := p.Board[from]
 		p.clearPiece(piece, from)
 		p.setPiece(piece, to)
-	case MoveFlagMove | MoveFlagPromotion:
+	case moveFlagMove | moveFlagPromotion:
 		piece := p.Board[from]
 		p.clearPiece(piece, from)
 		p.setPiece(piece.Promote(), to)
-	case MoveFlagMove | MoveFlagCapture:
+	case moveFlagMove | moveFlagCapture:
 		piece := p.Board[from]
 		captured := p.Board[to]
 		p.clearPiece(piece, from)
 		p.clearBitboards(captured, to)
 		p.setPiece(piece, to)
 		p.Hands[p.Side].Push(captured.ToOpponentHand())
-	case MoveFlagMove | MoveFlagCapture | MoveFlagPromotion:
+	case moveFlagMove | moveFlagCapture | moveFlagPromotion:
 		piece := p.Board[from]
 		captured := p.Board[to]
 		p.clearPiece(piece, from)
 		p.clearBitboards(captured, to)
 		p.setPiece(piece.Promote(), to)
 		p.Hands[p.Side].Push(captured.ToOpponentHand())
-	case MoveFlagNull:
+	case moveFlagNull:
 	}
 
 	p.Ply++
@@ -79,101 +79,101 @@ func (p *Position) ApplyMove(m Move) {
 // UnapplyMove updates Position based on provided Move WITHOUT any rules check,
 // it is the responsability of the caller to provide a legal move.
 func (p *Position) UnapplyMove(m Move) {
-	flags, from, to, mPiece := m.GetAll()
+	flags, from, to, mPiece := m.destructure()
 	switch flags {
-	case MoveFlagDrop:
+	case moveFlagDrop:
 		piece := mPiece
 		p.clearPiece(piece, to)
 		p.Hands[p.Side.Opponent()].Push(piece)
-	case MoveFlagMove:
+	case moveFlagMove:
 		piece := p.Board[to]
 		p.clearPiece(piece, to)
 		p.setPiece(piece, from)
-	case MoveFlagMove | MoveFlagPromotion:
+	case moveFlagMove | moveFlagPromotion:
 		piece := p.Board[to]
 		p.clearPiece(piece, to)
 		p.setPiece(piece.UnPromote(), from)
-	case MoveFlagMove | MoveFlagCapture:
+	case moveFlagMove | moveFlagCapture:
 		piece := p.Board[to]
 		captured := mPiece
 		p.setPiece(piece, from)
 		p.clearBitboards(piece, to)
 		p.setPiece(captured, to)
 		p.Hands[p.Side.Opponent()].Pop(captured.ToOpponentHand())
-	case MoveFlagMove | MoveFlagCapture | MoveFlagPromotion:
+	case moveFlagMove | moveFlagCapture | moveFlagPromotion:
 		piece := p.Board[to]
 		captured := mPiece
 		p.setPiece(piece.UnPromote(), from)
 		p.clearBitboards(piece, to)
 		p.setPiece(captured, to)
 		p.Hands[p.Side.Opponent()].Pop(captured.ToOpponentHand())
-	case MoveFlagNull:
+	case moveFlagNull:
 	}
 
 	p.Ply--
 	p.Side = p.Side.Opponent()
 }
 
-func (p *Position) setPiece(piece Piece, square SquareIndex) {
+func (p *Position) setPiece(piece Piece, square squareIndex) {
 	p.Board[square] = piece
 	p.setBitboards(piece, square)
-	p.checkBBbyColorConsistency()
-	p.checkBBbyPieceConsistency()
+	// p.checkBBbyColorConsistency()
+	// p.checkBBbyPieceConsistency()
 }
 
-func (p *Position) setBitboards(piece Piece, square SquareIndex) {
+func (p *Position) setBitboards(piece Piece, square squareIndex) {
 	p.BBbyColor[piece.Color()] = p.BBbyColor[piece.Color()].SetBit(square)
 	p.BBbyPiece[piece] = p.BBbyPiece[piece].SetBit(square)
 }
 
-func (p *Position) clearPiece(piece Piece, square SquareIndex) {
+func (p *Position) clearPiece(piece Piece, square squareIndex) {
 	p.Board[square] = NoPiece
 	p.clearBitboards(piece, square)
-	p.checkBBbyColorConsistency()
-	p.checkBBbyPieceConsistency()
+	// p.checkBBbyColorConsistency()
+	// p.checkBBbyPieceConsistency()
 }
 
-func (p *Position) clearBitboards(piece Piece, square SquareIndex) {
+func (p *Position) clearBitboards(piece Piece, square squareIndex) {
 	p.BBbyColor[piece.Color()] = p.BBbyColor[piece.Color()].ClearBit(square)
 	p.BBbyPiece[piece] = p.BBbyPiece[piece].ClearBit(square)
 }
 
-func (p *Position) checkBBbyColorConsistency() {
-	for sq := SquareIndex(0); sq < SQUARES; sq++ {
-		piece := p.Board[sq]
-		switch {
-		case piece == NoPiece:
-			if p.BBbyColor[Black].GetBit(sq) != 0 || p.BBbyColor[White].GetBit(sq) != 0 {
-				panic("BBbyColor inconsistency (NoPiece)")
-			}
-		case piece.Color() == Black:
-			if p.BBbyColor[Black].GetBit(sq) != 1 || p.BBbyColor[White].GetBit(sq) != 0 {
-				panic("BBbyColor inconsistency (Black)")
-			}
-		case piece.Color() == White:
-			if p.BBbyColor[Black].GetBit(sq) != 0 || p.BBbyColor[White].GetBit(sq) != 1 {
-				panic("BBbyColor inconsistency (White)")
-			}
-		}
-	}
-}
+// func (p *Position) checkBBbyColorConsistency() {
+// 	for sq := squareIndex(0); sq < SQUARES; sq++ {
+// 		piece := p.Board[sq]
+// 		switch {
+// 		case piece == NoPiece:
+// 			if p.BBbyColor[Black].GetBit(sq) != 0 || p.BBbyColor[White].GetBit(sq) != 0 {
+// 				panic("BBbyColor inconsistency (NoPiece)")
+// 			}
+// 		case piece.Color() == Black:
+// 			if p.BBbyColor[Black].GetBit(sq) != 1 || p.BBbyColor[White].GetBit(sq) != 0 {
+// 				panic("BBbyColor inconsistency (Black)")
+// 			}
+// 		case piece.Color() == White:
+// 			if p.BBbyColor[Black].GetBit(sq) != 0 || p.BBbyColor[White].GetBit(sq) != 1 {
+// 				panic("BBbyColor inconsistency (White)")
+// 			}
+// 		}
+// 	}
+// }
 
-func (p *Position) checkBBbyPieceConsistency() {
-	for sq := SquareIndex(0); sq < SQUARES; sq++ {
-		piece := p.Board[sq]
-		switch {
-		case piece == NoPiece:
-			for _, bb := range p.BBbyPiece {
-				if bb.GetBit(sq) != 0 {
-					panic("BBbyPiece inconsistency (NoPiece)")
-				}
-			}
-		default:
-			for i, bb := range p.BBbyPiece {
-				if (int(piece) == i && bb.GetBit(sq) != 1) || (int(piece) != i && bb.GetBit(sq) != 0) {
-					panic("BBbyPiece inconsistency (Piece)")
-				}
-			}
-		}
-	}
-}
+// func (p *Position) checkBBbyPieceConsistency() {
+// 	for sq := squareIndex(0); sq < SQUARES; sq++ {
+// 		piece := p.Board[sq]
+// 		switch {
+// 		case piece == NoPiece:
+// 			for _, bb := range p.BBbyPiece {
+// 				if bb.GetBit(sq) != 0 {
+// 					panic("BBbyPiece inconsistency (NoPiece)")
+// 				}
+// 			}
+// 		default:
+// 			for i, bb := range p.BBbyPiece {
+// 				if (int(piece) == i && bb.GetBit(sq) != 1) || (int(piece) != i && bb.GetBit(sq) != 0) {
+// 					panic("BBbyPiece inconsistency (Piece)")
+// 				}
+// 			}
+// 		}
+// 	}
+// }

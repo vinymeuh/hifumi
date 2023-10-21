@@ -20,7 +20,7 @@ func NewPositionFromSfen(sfen string) (*Position, error) {
 	}
 
 	// board state
-	g := NewPosition()
+	g := newPosition()
 	if err := g.sfenParseBoard(fields[0]); err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (p *Position) sfenParseBoard(str string) error {
 			if err != nil {
 				return fmt.Errorf("SFEN invalid character in board")
 			}
-			p.setPiece(k, SquareIndex(sq))
+			p.setPiece(k, squareIndex(sq))
 		}
 	}
 	return nil

@@ -1,23 +1,19 @@
 // SPDX-FileCopyrightText: 2023 VinyMeuh
 // SPDX-License-Identifier: MIT
-package movegen
+package shogi
 
-import (
-	"math/rand"
-
-	"github.com/vinymeuh/hifumi/shogi"
-)
+import "math/rand"
 
 // maxMoves is the maximum number of moves we expect to generate from a given shogi position.
 const maxMoves = 256
 
 // MoveList is a list of Moves with a fixed maximum size.
 type MoveList struct {
-	Moves [maxMoves]shogi.Move // Holds the generated moves
-	Count int                  // The current count of moves in the list
+	Moves [maxMoves]Move // Holds the generated moves
+	Count int            // The current count of moves in the list
 }
 
-func (ml *MoveList) add(move shogi.Move) {
+func (ml *MoveList) Push(move Move) {
 	ml.Moves[ml.Count] = move
 	ml.Count++
 	if ml.Count == maxMoves {
@@ -30,8 +26,8 @@ func (ml *MoveList) add(move shogi.Move) {
 // ******************************************** //
 
 // GeneratePseudoLegalMoves generates pseudo-legal moves for the given game state and adds them to the move list.
-func GeneratePseudoLegalMoves(gs *shogi.Position, list *MoveList) {
-	if gs.Side == shogi.Black {
+func GeneratePseudoLegalMoves(gs *Position, list *MoveList) {
+	if gs.Side == Black {
 		BlackPawnMoves(gs, list)
 		BlackLanceMoves(gs, list)
 		BlackKnightMoves(gs, list)
@@ -68,128 +64,128 @@ func GeneratePseudoLegalMoves(gs *shogi.Position, list *MoveList) {
 	}
 
 	if gs.Hands[gs.Side].Count > 0 {
-		GenerateDrops(gs, list)
+		generateDrops(gs, list)
 	}
 }
 
-func BlackPawnMoves(gs *shogi.Position, list *MoveList) {
-	blackPawnMoveRules.generateMoves(shogi.BlackPawn, gs, list)
+func BlackPawnMoves(gs *Position, list *MoveList) {
+	blackPawnMoveRules.GenerateMoves(BlackPawn, gs, list)
 }
 
-func BlackLanceMoves(gs *shogi.Position, list *MoveList) {
-	blackLanceMoveRules.generateMoves(shogi.BlackLance, gs, list)
+func BlackLanceMoves(gs *Position, list *MoveList) {
+	blackLanceMoveRules.generateMoves(BlackLance, gs, list)
 }
 
-func BlackKnightMoves(gs *shogi.Position, list *MoveList) {
-	blackKnightMoveRules.generateMoves(shogi.BlackKnight, gs, list)
+func BlackKnightMoves(gs *Position, list *MoveList) {
+	blackKnightMoveRules.GenerateMoves(BlackKnight, gs, list)
 }
 
-func BlackSilverMoves(gs *shogi.Position, list *MoveList) {
-	blackSilverMoveRules.generateMoves(shogi.BlackSilver, gs, list)
+func BlackSilverMoves(gs *Position, list *MoveList) {
+	blackSilverMoveRules.GenerateMoves(BlackSilver, gs, list)
 }
 
-func BlackGoldMoves(gs *shogi.Position, list *MoveList) {
-	blackGoldMoveRules.generateMoves(shogi.BlackGold, gs, list)
+func BlackGoldMoves(gs *Position, list *MoveList) {
+	blackGoldMoveRules.GenerateMoves(BlackGold, gs, list)
 }
 
-func BlackBishopMoves(gs *shogi.Position, list *MoveList) {
-	blackBishopMoveRules.generateMoves(shogi.BlackBishop, gs, list)
+func BlackBishopMoves(gs *Position, list *MoveList) {
+	blackBishopMoveRules.generateMoves(BlackBishop, gs, list)
 }
 
-func BlackKingMoves(gs *shogi.Position, list *MoveList) {
-	kingMoveRules.generateMoves(shogi.BlackKing, gs, list)
+func BlackKingMoves(gs *Position, list *MoveList) {
+	kingMoveRules.GenerateMoves(BlackKing, gs, list)
 }
 
-func BlackRookMoves(gs *shogi.Position, list *MoveList) {
-	blackRookHMoveRules.generateMoves(shogi.BlackRook, gs, list)
-	blackRookVMoveRules.generateMoves(shogi.BlackRook, gs, list)
+func BlackRookMoves(gs *Position, list *MoveList) {
+	blackRookHMoveRules.generateMoves(BlackRook, gs, list)
+	blackRookVMoveRules.generateMoves(BlackRook, gs, list)
 }
 
-func BlackPromotedPawnMoves(gs *shogi.Position, list *MoveList) {
-	blackGoldMoveRules.generateMoves(shogi.BlackPromotedPawn, gs, list)
+func BlackPromotedPawnMoves(gs *Position, list *MoveList) {
+	blackGoldMoveRules.GenerateMoves(BlackPromotedPawn, gs, list)
 }
 
-func BlackPromotedLanceMoves(gs *shogi.Position, list *MoveList) {
-	blackGoldMoveRules.generateMoves(shogi.BlackPromotedLance, gs, list)
+func BlackPromotedLanceMoves(gs *Position, list *MoveList) {
+	blackGoldMoveRules.GenerateMoves(BlackPromotedLance, gs, list)
 }
 
-func BlackPromotedKnightMoves(gs *shogi.Position, list *MoveList) {
-	blackGoldMoveRules.generateMoves(shogi.BlackPromotedKnight, gs, list)
+func BlackPromotedKnightMoves(gs *Position, list *MoveList) {
+	blackGoldMoveRules.GenerateMoves(BlackPromotedKnight, gs, list)
 }
 
-func BlackPromotedSilverMoves(gs *shogi.Position, list *MoveList) {
-	blackGoldMoveRules.generateMoves(shogi.BlackPromotedSilver, gs, list)
+func BlackPromotedSilverMoves(gs *Position, list *MoveList) {
+	blackGoldMoveRules.GenerateMoves(BlackPromotedSilver, gs, list)
 }
 
-func BlackPromotedBishopMoves(gs *shogi.Position, list *MoveList) {
-	blackBishopMoveRules.generateMoves(shogi.BlackPromotedBishop, gs, list)
-	promotedBishopMoveRules.generateMoves(shogi.BlackPromotedBishop, gs, list)
+func BlackPromotedBishopMoves(gs *Position, list *MoveList) {
+	blackBishopMoveRules.generateMoves(BlackPromotedBishop, gs, list)
+	promotedBishopMoveRules.GenerateMoves(BlackPromotedBishop, gs, list)
 }
 
-func BlackPromotedRookMoves(gs *shogi.Position, list *MoveList) {
-	blackRookHMoveRules.generateMoves(shogi.BlackPromotedRook, gs, list)
-	blackRookVMoveRules.generateMoves(shogi.BlackPromotedRook, gs, list)
-	promotedRookMoveRules.generateMoves(shogi.BlackPromotedRook, gs, list)
+func BlackPromotedRookMoves(gs *Position, list *MoveList) {
+	blackRookHMoveRules.generateMoves(BlackPromotedRook, gs, list)
+	blackRookVMoveRules.generateMoves(BlackPromotedRook, gs, list)
+	promotedRookMoveRules.GenerateMoves(BlackPromotedRook, gs, list)
 }
 
-func WhitePawnMoves(gs *shogi.Position, list *MoveList) {
-	whitePawnMoveRules.generateMoves(shogi.WhitePawn, gs, list)
+func WhitePawnMoves(gs *Position, list *MoveList) {
+	whitePawnMoveRules.GenerateMoves(WhitePawn, gs, list)
 }
 
-func WhiteLanceMoves(gs *shogi.Position, list *MoveList) {
-	whiteLanceMoveRules.generateMoves(shogi.WhiteLance, gs, list)
+func WhiteLanceMoves(gs *Position, list *MoveList) {
+	whiteLanceMoveRules.generateMoves(WhiteLance, gs, list)
 }
 
-func WhiteKnightMoves(gs *shogi.Position, list *MoveList) {
-	whiteKnightMoveRules.generateMoves(shogi.WhiteKnight, gs, list)
+func WhiteKnightMoves(gs *Position, list *MoveList) {
+	whiteKnightMoveRules.GenerateMoves(WhiteKnight, gs, list)
 }
 
-func WhiteSilverMoves(gs *shogi.Position, list *MoveList) {
-	whiteSilverMoveRules.generateMoves(shogi.WhiteSilver, gs, list)
+func WhiteSilverMoves(gs *Position, list *MoveList) {
+	whiteSilverMoveRules.GenerateMoves(WhiteSilver, gs, list)
 }
 
-func WhiteGoldMoves(gs *shogi.Position, list *MoveList) {
-	whiteGoldMoveRules.generateMoves(shogi.WhiteGold, gs, list)
+func WhiteGoldMoves(gs *Position, list *MoveList) {
+	whiteGoldMoveRules.GenerateMoves(WhiteGold, gs, list)
 }
 
-func WhiteBishopMoves(gs *shogi.Position, list *MoveList) {
-	whiteBishopMoveRules.generateMoves(shogi.WhiteBishop, gs, list)
+func WhiteBishopMoves(gs *Position, list *MoveList) {
+	whiteBishopMoveRules.generateMoves(WhiteBishop, gs, list)
 }
 
-func WhiteKingMoves(gs *shogi.Position, list *MoveList) {
-	kingMoveRules.generateMoves(shogi.WhiteKing, gs, list)
+func WhiteKingMoves(gs *Position, list *MoveList) {
+	kingMoveRules.GenerateMoves(WhiteKing, gs, list)
 }
 
-func WhiteRookMoves(gs *shogi.Position, list *MoveList) {
-	whiteRookHMoveRules.generateMoves(shogi.WhiteRook, gs, list)
-	whiteRookVMoveRules.generateMoves(shogi.WhiteRook, gs, list)
+func WhiteRookMoves(gs *Position, list *MoveList) {
+	whiteRookHMoveRules.generateMoves(WhiteRook, gs, list)
+	whiteRookVMoveRules.generateMoves(WhiteRook, gs, list)
 }
 
-func WhitePromotedPawnMoves(gs *shogi.Position, list *MoveList) {
-	whiteGoldMoveRules.generateMoves(shogi.WhitePromotedPawn, gs, list)
+func WhitePromotedPawnMoves(gs *Position, list *MoveList) {
+	whiteGoldMoveRules.GenerateMoves(WhitePromotedPawn, gs, list)
 }
 
-func WhitePromotedLanceMoves(gs *shogi.Position, list *MoveList) {
-	whiteGoldMoveRules.generateMoves(shogi.WhitePromotedLance, gs, list)
+func WhitePromotedLanceMoves(gs *Position, list *MoveList) {
+	whiteGoldMoveRules.GenerateMoves(WhitePromotedLance, gs, list)
 }
 
-func WhitePromotedKnightMoves(gs *shogi.Position, list *MoveList) {
-	whiteGoldMoveRules.generateMoves(shogi.WhitePromotedKnight, gs, list)
+func WhitePromotedKnightMoves(gs *Position, list *MoveList) {
+	whiteGoldMoveRules.GenerateMoves(WhitePromotedKnight, gs, list)
 }
 
-func WhitePromotedSilverMoves(gs *shogi.Position, list *MoveList) {
-	whiteGoldMoveRules.generateMoves(shogi.WhitePromotedSilver, gs, list)
+func WhitePromotedSilverMoves(gs *Position, list *MoveList) {
+	whiteGoldMoveRules.GenerateMoves(WhitePromotedSilver, gs, list)
 }
 
-func WhitePromotedBishopMoves(gs *shogi.Position, list *MoveList) {
-	whiteBishopMoveRules.generateMoves(shogi.WhitePromotedBishop, gs, list)
-	promotedBishopMoveRules.generateMoves(shogi.WhitePromotedBishop, gs, list)
+func WhitePromotedBishopMoves(gs *Position, list *MoveList) {
+	whiteBishopMoveRules.generateMoves(WhitePromotedBishop, gs, list)
+	promotedBishopMoveRules.GenerateMoves(WhitePromotedBishop, gs, list)
 }
 
-func WhitePromotedRookMoves(gs *shogi.Position, list *MoveList) {
-	whiteRookHMoveRules.generateMoves(shogi.WhitePromotedRook, gs, list)
-	whiteRookVMoveRules.generateMoves(shogi.WhitePromotedRook, gs, list)
-	promotedRookMoveRules.generateMoves(shogi.WhitePromotedRook, gs, list)
+func WhitePromotedRookMoves(gs *Position, list *MoveList) {
+	whiteRookHMoveRules.generateMoves(WhitePromotedRook, gs, list)
+	whiteRookVMoveRules.generateMoves(WhitePromotedRook, gs, list)
+	promotedRookMoveRules.GenerateMoves(WhitePromotedRook, gs, list)
 }
 
 // ********************************************* //
@@ -197,31 +193,31 @@ func WhitePromotedRookMoves(gs *shogi.Position, list *MoveList) {
 // ********************************************* //
 
 // promoteFunc is a function type that checks promotion rules for moves.
-type promoteFunc func(from, to shogi.SquareIndex) (can, must bool)
+type promoteFunc func(from, to squareIndex) (can, must bool)
 
-func generateMoves(from shogi.SquareIndex, attacks shogi.Bitboard, gs *shogi.Position, promote promoteFunc, list *MoveList) {
+func generateMoves(from squareIndex, attacks Bitboard, gs *Position, promote promoteFunc, list *MoveList) {
 	mycolor := gs.Side
 	myopponent := mycolor.Opponent()
 
 	// generate moves for the current piece on "from"
-	for attacks != shogi.Zero {
-		to := shogi.SquareIndex(attacks.Lsb())
+	for attacks != Zero {
+		to := squareIndex(attacks.Lsb())
 		canPromote, mustPromote := promote(from, to)
 
 		switch {
 		case gs.BBbyColor[myopponent].GetBit(to) == 1: // capture
 			captured := gs.Board[to]
 			if canPromote {
-				list.add(shogi.NewMove(
-					shogi.MoveFlagMove|shogi.MoveFlagPromotion|shogi.MoveFlagCapture,
+				list.Push(newMove(
+					moveFlagMove|moveFlagPromotion|moveFlagCapture,
 					from,
 					to,
 					captured,
 				))
 			}
 			if !mustPromote {
-				list.add(shogi.NewMove(
-					shogi.MoveFlagMove|shogi.MoveFlagCapture,
+				list.Push(newMove(
+					moveFlagMove|moveFlagCapture,
 					from,
 					to,
 					captured,
@@ -230,19 +226,19 @@ func generateMoves(from shogi.SquareIndex, attacks shogi.Bitboard, gs *shogi.Pos
 
 		case gs.BBbyColor[mycolor].GetBit(to) == 0: // empty destination
 			if canPromote {
-				list.add(shogi.NewMove(
-					shogi.MoveFlagMove|shogi.MoveFlagPromotion,
+				list.Push(newMove(
+					moveFlagMove|moveFlagPromotion,
 					from,
 					to,
-					shogi.NoPiece,
+					NoPiece,
 				))
 			}
 			if !mustPromote {
-				list.add(shogi.NewMove(
-					shogi.MoveFlagMove,
+				list.Push(newMove(
+					moveFlagMove,
 					from,
 					to,
-					shogi.NoPiece,
+					NoPiece,
 				))
 			}
 		}
@@ -255,15 +251,15 @@ func generateMoves(from shogi.SquareIndex, attacks shogi.Bitboard, gs *shogi.Pos
 // ********************************************* //
 
 // attacksTable is an array of bitboard indexed by square, used for non sliding pieces.
-type attacksTable [shogi.SQUARES]shogi.Bitboard
+type AttacksTable [SQUARES]Bitboard
 
-// newAttacksTable creates a new attacksTable from an array of shifts
-func newAttacksTable(shifts []shift) attacksTable {
-	var at attacksTable
-	for sq := shogi.SquareIndex(0); sq < shogi.SQUARES; sq++ {
-		bb := shogi.Zero
-		for _, shift := range shifts {
-			newsq, err := shift.from(sq)
+// newAttacksTable creates a new attacksTable from an array of move directions
+func newAttacksTable(moveDirections []direction) AttacksTable {
+	var at AttacksTable
+	for sq := squareIndex(0); sq < SQUARES; sq++ {
+		bb := Zero
+		for _, d := range moveDirections {
+			newsq, err := sq.Shift(d)
 			if err != nil {
 				continue
 			}
@@ -278,19 +274,19 @@ func newAttacksTable(shifts []shift) attacksTable {
 // *************** Non Sliding Pieces Move Rules *************** //
 // ************************************************************* //
 type nonSlidingPieceMoveRules struct {
-	promote promoteFunc
-	attacks attacksTable
+	Promote promoteFunc
+	Attacks AttacksTable
 }
 
-func (rules nonSlidingPieceMoveRules) generateMoves(piece shogi.Piece, gs *shogi.Position, list *MoveList) {
+func (rules nonSlidingPieceMoveRules) GenerateMoves(piece Piece, gs *Position, list *MoveList) {
 	mypieces := gs.BBbyPiece[piece]
 
 	// iterate over each of our pieces
-	for mypieces != shogi.Zero {
-		from := shogi.SquareIndex(mypieces.Lsb())
-		attacks := rules.attacks[from]
+	for mypieces != Zero {
+		from := squareIndex(mypieces.Lsb())
+		attacks := rules.Attacks[from]
 		// generate moves for the current piece on "from"
-		generateMoves(from, attacks, gs, rules.promote, list)
+		generateMoves(from, attacks, gs, rules.Promote, list)
 		mypieces = mypieces.ClearBit(from)
 	}
 }
@@ -298,15 +294,15 @@ func (rules nonSlidingPieceMoveRules) generateMoves(piece shogi.Piece, gs *shogi
 var (
 	// BlackPawn
 	blackPawnMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: north},
+		Attacks: newAttacksTable([]direction{
+			origin.toNorth(1),
 		}),
-		promote: func(_, to shogi.SquareIndex) (can, must bool) {
+		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to <= shogi.SQ1c && to > shogi.SQ1a:
+			case to <= SQ1c && to > SQ1a:
 				can = true
 				must = false
-			case to <= shogi.SQ1a:
+			case to <= SQ1a:
 				can = true
 				must = true
 			}
@@ -316,15 +312,15 @@ var (
 
 	// WhitePawn
 	whitePawnMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: south},
+		Attacks: newAttacksTable([]direction{
+			origin.toSouth(1),
 		}),
-		promote: func(_, to shogi.SquareIndex) (can, must bool) {
+		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to >= shogi.SQ9g && to < shogi.SQ9a:
+			case to >= SQ9g && to < SQ9a:
 				can = true
 				must = false
-			case to >= shogi.SQ9i:
+			case to >= SQ9i:
 				can = true
 				must = true
 			}
@@ -334,16 +330,16 @@ var (
 
 	// BlackKnight
 	blackKnightMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: 2 * north, file: east},
-			{rank: 2 * north, file: west},
+		Attacks: newAttacksTable([]direction{
+			origin.toNorth(2).toEast(1),
+			origin.toNorth(2).toWest(1),
 		}),
-		promote: func(_, to shogi.SquareIndex) (can, must bool) {
+		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to <= shogi.SQ1c && to > shogi.SQ1b:
+			case to <= SQ1c && to > SQ1b:
 				can = true
 				must = false
-			case to <= shogi.SQ1b:
+			case to <= SQ1b:
 				can = true
 				must = true
 			}
@@ -353,16 +349,16 @@ var (
 
 	// WhiteKnight
 	whiteKnightMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: 2 * south, file: east},
-			{rank: 2 * south, file: west},
+		Attacks: newAttacksTable([]direction{
+			origin.toSouth(2).toEast(1),
+			origin.toSouth(2).toWest(1),
 		}),
-		promote: func(_, to shogi.SquareIndex) (can, must bool) {
+		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to >= shogi.SQ9g && to < shogi.SQ9h:
+			case to >= SQ9g && to < SQ9h:
 				can = true
 				must = false
-			case to >= shogi.SQ9h:
+			case to >= SQ9h:
 				can = true
 				must = true
 			}
@@ -372,16 +368,16 @@ var (
 
 	// BlackSilver
 	blackSilverMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: north, file: west},
-			{rank: north},
-			{rank: north, file: east},
-			{rank: south, file: west},
-			{rank: south, file: east},
+		Attacks: newAttacksTable([]direction{
+			origin.toNorth(1).toWest(1),
+			origin.toNorth(1),
+			origin.toNorth(1).toEast(1),
+			origin.toSouth(1).toWest(1),
+			origin.toSouth(1).toEast(1),
 		}),
-		promote: func(from, to shogi.SquareIndex) (can, must bool) {
+		Promote: func(from, to squareIndex) (can, must bool) {
 			switch {
-			case (from <= shogi.SQ1c && from > shogi.SQ1b) || (to <= shogi.SQ1c && to > shogi.SQ1b):
+			case (from <= SQ1c && from > SQ1b) || (to <= SQ1c && to > SQ1b):
 				can = true
 				must = false
 			}
@@ -391,16 +387,16 @@ var (
 
 	// WhiteSilver
 	whiteSilverMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: north, file: west},
-			{rank: north, file: east},
-			{rank: south, file: west},
-			{rank: south},
-			{rank: south, file: east},
+		Attacks: newAttacksTable([]direction{
+			origin.toNorth(1).toWest(1),
+			origin.toNorth(1).toEast(1),
+			origin.toSouth(1).toWest(1),
+			origin.toSouth(1),
+			origin.toSouth(1).toEast(1),
 		}),
-		promote: func(from, to shogi.SquareIndex) (can, must bool) {
+		Promote: func(from, to squareIndex) (can, must bool) {
 			switch {
-			case (from >= shogi.SQ9g && from < shogi.SQ9a) || (to >= shogi.SQ9g && to < shogi.SQ9a):
+			case (from >= SQ9g && from < SQ9a) || (to >= SQ9g && to < SQ9a):
 				can = true
 				must = false
 			}
@@ -410,65 +406,65 @@ var (
 
 	// BlackGold
 	blackGoldMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: north, file: west},
-			{rank: north},
-			{rank: north, file: east},
-			{file: west},
-			{rank: south},
-			{file: east},
+		Attacks: newAttacksTable([]direction{
+			origin.toNorth(1).toWest(1),
+			origin.toNorth(1),
+			origin.toNorth(1).toEast(1),
+			origin.toWest(1),
+			origin.toSouth(1),
+			origin.toEast(1),
 		}),
-		promote: func(_, _ shogi.SquareIndex) (can, must bool) { return },
+		Promote: func(_, _ squareIndex) (can, must bool) { return },
 	}
 
 	// WhiteGold
 	whiteGoldMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: north},
-			{file: west},
-			{file: east},
-			{rank: south, file: west},
-			{rank: south},
-			{rank: south, file: east},
+		Attacks: newAttacksTable([]direction{
+			origin.toNorth(1),
+			origin.toWest(1),
+			origin.toEast(1),
+			origin.toSouth(1).toWest(1),
+			origin.toSouth(1),
+			origin.toSouth(1).toEast(1),
 		}),
-		promote: func(_, _ shogi.SquareIndex) (can, must bool) { return },
+		Promote: func(_, _ squareIndex) (can, must bool) { return },
 	}
 
 	// Kings
 	kingMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: north, file: west},
-			{rank: north},
-			{rank: north, file: east},
-			{file: west},
-			{file: east},
-			{rank: south},
-			{rank: south, file: west},
-			{rank: south, file: east},
+		Attacks: newAttacksTable([]direction{
+			origin.toNorth(1).toWest(1),
+			origin.toNorth(1),
+			origin.toNorth(1).toEast(1),
+			origin.toWest(1),
+			origin.toEast(1),
+			origin.toSouth(1),
+			origin.toSouth(1).toWest(1),
+			origin.toSouth(1).toEast(1),
 		}),
-		promote: func(_, _ shogi.SquareIndex) (can, must bool) { return },
+		Promote: func(_, _ squareIndex) (can, must bool) { return },
 	}
 
 	// PromotedBishops (additional moves)
 	promotedBishopMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: north},
-			{file: west},
-			{file: east},
-			{rank: south},
+		Attacks: newAttacksTable([]direction{
+			origin.toNorth(1),
+			origin.toWest(1),
+			origin.toEast(1),
+			origin.toSouth(1),
 		}),
-		promote: func(_, _ shogi.SquareIndex) (can, must bool) { return },
+		Promote: func(_, _ squareIndex) (can, must bool) { return },
 	}
 
 	// PromotedRooks (additional moves)
 	promotedRookMoveRules = nonSlidingPieceMoveRules{
-		attacks: newAttacksTable([]shift{
-			{rank: north, file: west},
-			{rank: north, file: east},
-			{rank: south, file: west},
-			{rank: south, file: east},
+		Attacks: newAttacksTable([]direction{
+			origin.toNorth(1).toWest(1),
+			origin.toNorth(1).toEast(1),
+			origin.toSouth(1).toWest(1),
+			origin.toSouth(1).toEast(1),
 		}),
-		promote: func(_, _ shogi.SquareIndex) (can, must bool) { return },
+		Promote: func(_, _ squareIndex) (can, must bool) { return },
 	}
 )
 
@@ -482,27 +478,27 @@ var (
 
 // MagicEntry represents the precomputed magic information for a square.
 type magicEntry struct {
-	attacks []shogi.Bitboard // Attacks indexed by magic index
-	mask    shogi.Bitboard   // All possible attacks on a board without blockers, excluding edges
-	magic   uint64           // The magic number for this square
-	shift   uint             // shift value for indexing the magic attacks
+	attacks []Bitboard // Attacks indexed by magic index
+	mask    Bitboard   // All possible attacks on a board without blockers, excluding edges
+	magic   uint64     // The magic number for this square
+	shift   uint       // shift value for indexing the magic attacks
 }
 
 // magicsTable is an array of MagicEntry indexed by square.
-type magicsTable [shogi.SQUARES]magicEntry
+type magicsTable [SQUARES]magicEntry
 
 // newMagicsTable initializes a MagicsTable with precomputed magic numbers.
-func newMagicsTable(magics [shogi.SQUARES]uint64, shifts []shift, edges shogi.Bitboard) magicsTable {
+func newMagicsTable(magics [SQUARES]uint64, moveDirections []direction, edges Bitboard) magicsTable {
 	var mt magicsTable
-	maskFunc := magicGenerateAttacksMaskFuncBuilder(shifts, edges)
-	attacksFunc := magicGenerateAttacksWithBlockersFuncBuilder(shifts)
-	for sq := shogi.SquareIndex(0); sq < shogi.SQUARES; sq++ {
+	maskFunc := magicGenerateAttacksMaskFuncBuilder(moveDirections, edges)
+	attacksFunc := magicGenerateAttacksWithBlockersFuncBuilder(moveDirections)
+	for sq := squareIndex(0); sq < SQUARES; sq++ {
 		mask := maskFunc(sq)
 		relevantBits := mask.PopCount()
 		occupancyVariations := uint(1) << relevantBits
 
 		me := magicEntry{
-			attacks: make([]shogi.Bitboard, occupancyVariations),
+			attacks: make([]Bitboard, occupancyVariations),
 			mask:    mask,
 			magic:   magics[sq],
 			shift:   64 - relevantBits,
@@ -520,28 +516,28 @@ func newMagicsTable(magics [shogi.SQUARES]uint64, shifts []shift, edges shogi.Bi
 }
 
 // generateOccupancy computes an occupancy bitboard for a given magic index.
-func generateOccupancy(index uint, mask shogi.Bitboard) shogi.Bitboard {
-	occupancy := shogi.Zero
+func generateOccupancy(index uint, mask Bitboard) Bitboard {
+	occupancy := Zero
 	count := mask.PopCount()
 	for i := uint(0); i < count; i++ {
 		sq := mask.Lsb()
-		mask = mask.ClearBit(shogi.SquareIndex(sq))
+		mask = mask.ClearBit(squareIndex(sq))
 		if (index & (1 << i)) != 0 { // test if the i-th bit in the index is set
-			occupancy = occupancy.SetBit(shogi.SquareIndex(sq))
+			occupancy = occupancy.SetBit(squareIndex(sq))
 		}
 	}
 	return occupancy
 }
 
 // MagicIndex computes the magic index to be used for magic bitboard lookup.
-func magicIndex(bb shogi.Bitboard, magic uint64, shift uint) uint64 {
+func magicIndex(bb Bitboard, magic uint64, shift uint) uint64 {
 	return (bb.Merge() * magic) >> shift
 }
 
 // findMagic finds a suitable magic number for a square, given the mask and attack generation function.
-func findMagic(sq shogi.SquareIndex, shifts []shift, edges shogi.Bitboard) uint64 {
-	mask := magicGenerateAttacksMaskFuncBuilder(shifts, edges)(sq)
-	attacksFunc := magicGenerateAttacksWithBlockersFuncBuilder(shifts)
+func findMagic(sq squareIndex, moveDirections []direction, edges Bitboard) uint64 {
+	mask := magicGenerateAttacksMaskFuncBuilder(moveDirections, edges)(sq)
+	attacksFunc := magicGenerateAttacksWithBlockersFuncBuilder(moveDirections)
 
 	relevantBits := mask.PopCount()
 	shift := 64 - relevantBits // 64 because used to shift Magic which is a uint64
@@ -549,9 +545,9 @@ func findMagic(sq shogi.SquareIndex, shifts []shift, edges shogi.Bitboard) uint6
 	// loop over occupancy variations
 	occupancyVariations := uint(1) << relevantBits
 
-	attacks := make([]shogi.Bitboard, occupancyVariations)
-	occupancy := make([]shogi.Bitboard, occupancyVariations)
-	indexedAttacks := make([]shogi.Bitboard, occupancyVariations)
+	attacks := make([]Bitboard, occupancyVariations)
+	occupancy := make([]Bitboard, occupancyVariations)
+	indexedAttacks := make([]Bitboard, occupancyVariations)
 	// indexedAttacksAttempt is used to keep track of test attempt counts
 	// and avoid resetting indexedAttacks which is too slow
 	indexedAttacksAttempt := make([]uint, occupancyVariations)
@@ -584,18 +580,18 @@ func findMagic(sq shogi.SquareIndex, shifts []shift, edges shogi.Bitboard) uint6
 }
 
 // magicGenerateAttacksWithBlockersFunc is a function type to generate attacks with blockers for a square.
-type magicGenerateAttacksWithBlockersFunc func(sq shogi.SquareIndex, blockers shogi.Bitboard) shogi.Bitboard
+type magicGenerateAttacksWithBlockersFunc func(sq squareIndex, blockers Bitboard) Bitboard
 
-// magicGenerateAttacksWithBlockersFuncBuilder creates an attack generation function for a set of shifts.
-func magicGenerateAttacksWithBlockersFuncBuilder(shifts []shift) magicGenerateAttacksWithBlockersFunc {
-	return func(sq shogi.SquareIndex, blockers shogi.Bitboard) shogi.Bitboard {
-		bb := shogi.Zero
+// magicGenerateAttacksWithBlockersFuncBuilder creates an attack generation function for a set of directions.
+func magicGenerateAttacksWithBlockersFuncBuilder(moveDirections []direction) magicGenerateAttacksWithBlockersFunc {
+	return func(sq squareIndex, blockers Bitboard) Bitboard {
+		bb := Zero
 		var err error
-		for _, shift := range shifts {
+		for _, d := range moveDirections {
 			newsq := sq
 			for {
 				oldsq := newsq
-				newsq, err = shift.from(oldsq)
+				newsq, err = oldsq.Shift(d)
 				if err != nil { // invalid move
 					break
 				}
@@ -610,18 +606,18 @@ func magicGenerateAttacksWithBlockersFuncBuilder(shifts []shift) magicGenerateAt
 }
 
 // magicGenerateAttacksMaskFunc is a function type to generate masks of all possible attacks for a square.
-type magicGenerateAttacksMaskFunc func(sq shogi.SquareIndex) shogi.Bitboard
+type magicGenerateAttacksMaskFunc func(sq squareIndex) Bitboard
 
-// magicGenerateAttacksMaskFuncBuilder creates a mask generation function for a set of shifts.
-func magicGenerateAttacksMaskFuncBuilder(shifts []shift, edges shogi.Bitboard) magicGenerateAttacksMaskFunc {
-	return func(sq shogi.SquareIndex) shogi.Bitboard {
+// magicGenerateAttacksMaskFuncBuilder creates a mask generation function for a set of directions.
+func magicGenerateAttacksMaskFuncBuilder(moveDirections []direction, edges Bitboard) magicGenerateAttacksMaskFunc {
+	return func(sq squareIndex) Bitboard {
 		var err error
-		bb := shogi.Zero
-		for _, shift := range shifts {
+		bb := Zero
+		for _, d := range moveDirections {
 			newsq := sq
 			for {
 				oldsq := newsq
-				newsq, err = shift.from(oldsq)
+				newsq, err = oldsq.Shift(d)
 				if err != nil { // invalid move
 					break
 				}
@@ -633,24 +629,24 @@ func magicGenerateAttacksMaskFuncBuilder(shifts []shift, edges shogi.Bitboard) m
 	}
 }
 
-func FindBlackLanceMagic(sq shogi.SquareIndex) uint64 {
-	return findMagic(sq, blackLanceShifts, blackLanceEdges)
+func FindBlackLanceMagic(sq int) uint64 {
+	return findMagic(squareIndex(sq), blackLanceDirections, blackLanceEdges)
 }
 
-func FindWhiteLanceMagic(sq shogi.SquareIndex) uint64 {
-	return findMagic(sq, whiteLanceShifts, whiteLanceEdges)
+func FindWhiteLanceMagic(sq int) uint64 {
+	return findMagic(squareIndex(sq), whiteLanceDirections, whiteLanceEdges)
 }
 
-func FindBishopMagic(sq shogi.SquareIndex) uint64 {
-	return findMagic(sq, bishopShifts, bishopEdges)
+func FindBishopMagic(sq int) uint64 {
+	return findMagic(squareIndex(sq), bishopDirections, bishopEdges)
 }
 
-func FindRookHMagic(sq shogi.SquareIndex) uint64 {
-	return findMagic(sq, rookHShifts, rookHEdges)
+func FindRookHMagic(sq int) uint64 {
+	return findMagic(squareIndex(sq), rookHDirections, rookHEdges)
 }
 
-func FindRookVMagic(sq shogi.SquareIndex) uint64 {
-	return findMagic(sq, rookVShifts, rookVEdges)
+func FindRookVMagic(sq int) uint64 {
+	return findMagic(squareIndex(sq), rookVDirections, rookVEdges)
 }
 
 // ************************************************************* //
@@ -662,13 +658,13 @@ type slidingPieceMoveRules struct {
 }
 
 // generateMoves generates moves for a sliding piece on the board.
-func (rules slidingPieceMoveRules) generateMoves(piece shogi.Piece, gs *shogi.Position, list *MoveList) {
+func (rules slidingPieceMoveRules) generateMoves(piece Piece, gs *Position, list *MoveList) {
 	mypieces := gs.BBbyPiece[piece]
-	occupied := gs.BBbyColor[shogi.Black].Or(gs.BBbyColor[shogi.White])
+	occupied := gs.BBbyColor[Black].Or(gs.BBbyColor[White])
 
 	// iterate over each of our pieces
-	for mypieces != shogi.Zero {
-		from := shogi.SquareIndex(mypieces.Lsb())
+	for mypieces != Zero {
+		from := squareIndex(mypieces.Lsb())
 		me := rules.magics[from]
 		blockers := occupied.And(me.mask)
 		index := magicIndex(blockers, me.magic, me.shift)
@@ -680,20 +676,20 @@ func (rules slidingPieceMoveRules) generateMoves(piece shogi.Piece, gs *shogi.Po
 }
 
 var (
-	blackLanceShifts = []shift{
-		{rank: north},
+	blackLanceDirections = []direction{
+		origin.toNorth(1),
 	}
 
-	blackLanceEdges = shogi.Rank1Mask.Not()
+	blackLanceEdges = Rank1Mask.Not()
 
 	blackLanceMoveRules = slidingPieceMoveRules{
-		magics: newMagicsTable(blackLanceMagics, blackLanceShifts, shogi.Rank1Mask.Not()),
-		promote: func(_, to shogi.SquareIndex) (can, must bool) {
+		magics: newMagicsTable(blackLanceMagics, blackLanceDirections, blackLanceEdges),
+		promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to <= shogi.SQ1c && to > shogi.SQ1a:
+			case to <= SQ1c && to > SQ1a:
 				can = true
 				must = false
-			case to <= shogi.SQ1a:
+			case to <= SQ1a:
 				can = true
 				must = true
 			}
@@ -701,7 +697,7 @@ var (
 		},
 	}
 
-	blackLanceMagics = [shogi.SQUARES]uint64{
+	blackLanceMagics = [SQUARES]uint64{
 		0x2000040018320009, 0x1A860800A0000, 0x820000180001814, 0x4021800001020010, 0x2104000040821202, 0x10003002A8, 0x10004900006000, 0x4800100110001461, 0x11000205040C0029,
 		0x8402006800409210, 0x100C0040062, 0x24200C0002880300, 0x2240000180089041, 0xE04000A2000200, 0x48084090, 0x600000600002402, 0x24052210808, 0x540512005A000000,
 		0x4D84200120150C0, 0x2204028020400C8, 0x18081010002000, 0xA400062200180, 0x1844010000501000, 0x8007880000000292, 0x8621201800192000, 0x4B28020222A0000, 0x3008C40000041900,
@@ -714,20 +710,20 @@ var (
 	}
 
 	// WhiteLance
-	whiteLanceShifts = []shift{
-		{rank: south},
+	whiteLanceDirections = []direction{
+		origin.toSouth(1),
 	}
 
-	whiteLanceEdges = shogi.Rank9Mask.Not()
+	whiteLanceEdges = Rank9Mask.Not()
 
 	whiteLanceMoveRules = slidingPieceMoveRules{
-		magics: newMagicsTable(whiteLanceMagics, whiteLanceShifts, whiteLanceEdges),
-		promote: func(_, to shogi.SquareIndex) (can, must bool) {
+		magics: newMagicsTable(whiteLanceMagics, whiteLanceDirections, whiteLanceEdges),
+		promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to >= shogi.SQ9g && to < shogi.SQ9a:
+			case to >= SQ9g && to < SQ9a:
 				can = true
 				must = false
-			case to >= shogi.SQ9i:
+			case to >= SQ9i:
 				can = true
 				must = true
 			}
@@ -735,7 +731,7 @@ var (
 		},
 	}
 
-	whiteLanceMagics = [shogi.SQUARES]uint64{
+	whiteLanceMagics = [SQUARES]uint64{
 		0x1143050806008021, 0x801041024004080, 0x110004508408008, 0x540204081001020, 0x801020104102C05, 0x508200201A20014C, 0x900A88024840244, 0x808109001010404, 0x244020602040302,
 		0x212240420A041, 0x3000080840420040, 0x4004308201104010, 0x2000405300A00410, 0x1042002420404608, 0xC00010004156C04, 0x424102401020C081, 0x80C0000220042882, 0xC0022002048221,
 		0x10805010023, 0x10400881AC0B0242, 0x880400040101C108, 0x2042109106103010, 0x4000001F0954010, 0x202026818200410, 0x32020000C8080188, 0x2A098210122204, 0x101008002061A41,
@@ -748,18 +744,18 @@ var (
 	}
 
 	// Bishop
-	bishopShifts = []shift{
-		{rank: north, file: west},
-		{rank: north, file: east},
-		{rank: south, file: west},
-		{rank: south, file: east},
+	bishopDirections = []direction{
+		origin.toNorth(1).toWest(1),
+		origin.toNorth(1).toEast(1),
+		origin.toSouth(1).toWest(1),
+		origin.toSouth(1).toEast(1),
 	}
 
-	bishopEdges = (shogi.Rank1Mask.Or(shogi.Rank9Mask).Or(shogi.File1Mask.Or(shogi.File9Mask))).Not()
+	bishopEdges = (Rank1Mask.Or(Rank9Mask).Or(File1Mask.Or(File9Mask))).Not()
 
 	blackBishopMoveRules = slidingPieceMoveRules{
-		magics: newMagicsTable(bishopMagics, bishopShifts, bishopEdges),
-		promote: func(from, to shogi.SquareIndex) (can, must bool) {
+		magics: newMagicsTable(bishopMagics, bishopDirections, bishopEdges),
+		promote: func(from, to squareIndex) (can, must bool) {
 			switch {
 			case from.Rank() <= 3 || to.Rank() <= 3:
 				can = true
@@ -770,8 +766,8 @@ var (
 	}
 
 	whiteBishopMoveRules = slidingPieceMoveRules{
-		magics: newMagicsTable(bishopMagics, bishopShifts, bishopEdges),
-		promote: func(from, to shogi.SquareIndex) (can, must bool) {
+		magics: newMagicsTable(bishopMagics, bishopDirections, bishopEdges),
+		promote: func(from, to squareIndex) (can, must bool) {
 			switch {
 			case from.Rank() >= 7 || to.Rank() >= 7:
 				can = true
@@ -781,7 +777,7 @@ var (
 		},
 	}
 
-	bishopMagics = [shogi.SQUARES]uint64{
+	bishopMagics = [SQUARES]uint64{
 		0x32040080800081, 0x29C504000A084801, 0x4188080021048, 0x201008041020084, 0x100100D80812C020, 0x4021210412022010, 0x400201041020C41, 0x41004900448011A0, 0x2008010400458A0,
 		0x2412008200C01402, 0xA000400A0042841, 0x4000110220202084, 0x8040A04101, 0x400280C1008100, 0x412014060801000, 0xC00004080E81021, 0x6400121088204080, 0x188000D044402002,
 		0xC0A1002003450A0, 0x4810A0408800A04, 0xA021204020084C, 0x1000208811006, 0x911000180159080, 0x10800815410058, 0x10020820A0050440, 0x208900801009020C, 0x44004000050802A0,
@@ -794,16 +790,16 @@ var (
 	}
 
 	// Rook - Horizontal
-	rookHShifts = []shift{
-		{file: east},
-		{file: west},
+	rookHDirections = []direction{
+		origin.toEast(1),
+		origin.toWest(1),
 	}
 
-	rookHEdges = (shogi.File1Mask.Or(shogi.File9Mask)).Not()
+	rookHEdges = (File1Mask.Or(File9Mask)).Not()
 
 	blackRookHMoveRules = slidingPieceMoveRules{
-		magics: newMagicsTable(rookHMagics, rookHShifts, rookHEdges),
-		promote: func(from, to shogi.SquareIndex) (can, must bool) {
+		magics: newMagicsTable(rookHMagics, rookHDirections, rookHEdges),
+		promote: func(from, to squareIndex) (can, must bool) {
 			switch {
 			case from.Rank() <= 3 || to.Rank() <= 3:
 				can = true
@@ -814,8 +810,8 @@ var (
 	}
 
 	whiteRookHMoveRules = slidingPieceMoveRules{
-		magics: newMagicsTable(rookHMagics, rookHShifts, rookHEdges),
-		promote: func(from, to shogi.SquareIndex) (can, must bool) {
+		magics: newMagicsTable(rookHMagics, rookHDirections, rookHEdges),
+		promote: func(from, to squareIndex) (can, must bool) {
 			switch {
 			case from.Rank() >= 7 || to.Rank() >= 7:
 				can = true
@@ -825,7 +821,7 @@ var (
 		},
 	}
 
-	rookHMagics = [shogi.SQUARES]uint64{
+	rookHMagics = [SQUARES]uint64{
 		0x10100C018000018, 0x700201000004580, 0x4080014120000000, 0x4500020002000000, 0x900184880880000, 0x8810008442104204, 0x4408D000508E0808, 0x20008881C000014, 0x1810000006804000,
 		0x1001020100084104, 0x6080480100000, 0xA20404022000010, 0x2102802000800100, 0x188104500001810, 0x8800801000600, 0x72048A08415040, 0x54C300020200A010, 0x4000809001411022,
 		0x800C04080088210, 0x400814000022001, 0xAA2004C040000101, 0x800814073140080, 0x2058840800080002, 0x604400A000820, 0x8818410220004800, 0x60800480481, 0x50024000112440,
@@ -838,16 +834,16 @@ var (
 	}
 
 	// Rook - Vertical
-	rookVShifts = []shift{
-		{rank: north},
-		{rank: south},
+	rookVDirections = []direction{
+		origin.toNorth(1),
+		origin.toSouth(1),
 	}
 
-	rookVEdges = (shogi.Rank1Mask.Or(shogi.Rank9Mask)).Not()
+	rookVEdges = (Rank1Mask.Or(Rank9Mask)).Not()
 
 	blackRookVMoveRules = slidingPieceMoveRules{
-		magics: newMagicsTable(rookVMagics, rookVShifts, rookVEdges),
-		promote: func(from, to shogi.SquareIndex) (can, must bool) {
+		magics: newMagicsTable(rookVMagics, rookVDirections, rookVEdges),
+		promote: func(from, to squareIndex) (can, must bool) {
 			switch {
 			case from.Rank() <= 3 || to.Rank() <= 3:
 				can = true
@@ -858,8 +854,8 @@ var (
 	}
 
 	whiteRookVMoveRules = slidingPieceMoveRules{
-		magics: newMagicsTable(rookVMagics, rookVShifts, rookVEdges),
-		promote: func(from, to shogi.SquareIndex) (can, must bool) {
+		magics: newMagicsTable(rookVMagics, rookVDirections, rookVEdges),
+		promote: func(from, to squareIndex) (can, must bool) {
 			switch {
 			case from.Rank() >= 7 || to.Rank() >= 7:
 				can = true
@@ -869,7 +865,7 @@ var (
 		},
 	}
 
-	rookVMagics = [shogi.SQUARES]uint64{
+	rookVMagics = [SQUARES]uint64{
 		0x20012100208081, 0x260060082008118, 0x230110100218002, 0x4848046020200220, 0x20B009080C29420, 0x80098120080110, 0x32002120C5050108, 0x40404004808089, 0x60640802580027,
 		0x20C1021084029185, 0x1010108404088010, 0x40000406C5504150, 0x10004100A01A8218, 0x94944100212002, 0x440408008082810, 0x2040009421080208, 0x8620001908008802, 0x14002C242040032,
 		0x40180C08060020A1, 0x1210002204011030, 0x400901C200802114, 0x5018008010A0A204, 0xC080004008A020, 0x45020120040410, 0x111001004810204, 0x42C0C00001100081, 0x1800240A1011102,

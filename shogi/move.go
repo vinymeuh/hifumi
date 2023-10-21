@@ -10,11 +10,11 @@ import (
 
 // MoveFlags represents the type of a Shogi Move.
 const (
-	MoveFlagNull      uint = 0b0000 // NullMove: No actual piece movement (usually used for passing a turn).
-	MoveFlagDrop      uint = 0b0001 // Drop: The move involves dropping a piece onto the board.
-	MoveFlagMove      uint = 0b0010 // Movement: The move involves moving a piece on the board.
-	MoveFlagPromotion uint = 0b0100 // Promotion: The moving piece will be promoted.
-	MoveFlagCapture   uint = 0b1000 // Capture: The move will result capturing an opponent's piece.
+	moveFlagNull      uint = 0b0000 // NullMove: No actual piece movement (usually used for passing a turn).
+	moveFlagDrop      uint = 0b0001 // Drop: The move involves dropping a piece onto the board.
+	moveFlagMove      uint = 0b0010 // Movement: The move involves moving a piece on the board.
+	moveFlagPromotion uint = 0b0100 // Promotion: The moving piece will be promoted.
+	moveFlagCapture   uint = 0b1000 // Capture: The move will result capturing an opponent's piece.
 )
 
 // Move is the type to record information about a Shogi move. A Move can be
@@ -30,7 +30,7 @@ const (
 type Move uint
 
 // NewMove creates a new Move with the provided MoveFlags, From, To, and Piece.
-func NewMove(flags uint, from SquareIndex, to SquareIndex, piece Piece) Move {
+func newMove(flags uint, from squareIndex, to squareIndex, piece Piece) Move {
 	m := Move(flags&0x0F) << 0
 	m |= Move(from&0xFF) << 4
 	m |= Move(to&0xFF) << 12
@@ -38,46 +38,46 @@ func NewMove(flags uint, from SquareIndex, to SquareIndex, piece Piece) Move {
 	return m
 }
 
-// Flags returns the MoveFlags part of the Move.
-func (m Move) Flags() uint {
+// flags returns the MoveFlags part of the Move.
+func (m Move) flags() uint {
 	return uint(m & 0x0F)
 }
 
-// From returns the From part of the Move.
-func (m Move) From() SquareIndex {
-	return SquareIndex((m >> 4) & 0xFF)
+// from returns the from part of the Move.
+func (m Move) from() squareIndex {
+	return squareIndex((m >> 4) & 0xFF)
 }
 
-// To returns the To part of the Move.
-func (m Move) To() SquareIndex {
-	return SquareIndex((m >> 12) & 0xFF)
+// to returns the to part of the Move.
+func (m Move) to() squareIndex {
+	return squareIndex((m >> 12) & 0xFF)
 }
 
 // Piece returns the Piece part of the Move.
-func (m Move) Piece() Piece {
+func (m Move) piece() Piece {
 	return Piece(uint((m >> 20) & 0x3F))
 }
 
-// GetAll returns the four parts of the Move.
-func (m Move) GetAll() (uint, SquareIndex, SquareIndex, Piece) {
-	flags := m.Flags()
-	from := m.From()
-	to := m.To()
-	piece := m.Piece()
+// destructure returns the four parts of the Move.
+func (m Move) destructure() (uint, squareIndex, squareIndex, Piece) {
+	flags := m.flags()
+	from := m.from()
+	to := m.to()
+	piece := m.piece()
 	return flags, from, to, piece
 }
 
 // String returns the move as a USI strinp.
 func (m Move) String() string {
-	flags := m.Flags()
+	flags := m.flags()
 	switch flags {
-	case MoveFlagDrop:
-		return fmt.Sprintf("%s*%s", strings.ToUpper(m.Piece().String()), m.To().String())
+	case moveFlagDrop:
+		return fmt.Sprintf("%s*%s", strings.ToUpper(m.piece().String()), m.to().String())
 	default:
-		if flags&MoveFlagPromotion == MoveFlagPromotion {
-			return fmt.Sprintf("%s%s+", m.From().String(), m.To().String())
+		if flags&moveFlagPromotion == moveFlagPromotion {
+			return fmt.Sprintf("%s%s+", m.from().String(), m.to().String())
 		}
-		return fmt.Sprintf("%s%s", m.From().String(), m.To().String())
+		return fmt.Sprintf("%s%s", m.from().String(), m.to().String())
 	}
 }
 
@@ -85,23 +85,23 @@ func (m Move) String() string {
 func NewMoveFromUsi(p *Position, s string) Move {
 	switch {
 	case regexMove.Match([]byte(s)):
-		from := NewSquareIndex(s[0:2])
+		from := newSquareIndex(s[0:2])
 		pFrom := p.Board[from]
 		if pFrom == NoPiece || pFrom.Color() != p.Side {
 			return Move(0)
 		}
-		to := NewSquareIndex(s[2:4])
+		to := newSquareIndex(s[2:4])
 		pTo := p.Board[to]
 
-		flags := MoveFlagMove
+		flags := moveFlagMove
 		if len(s) == 5 {
-			flags |= MoveFlagPromotion
+			flags |= moveFlagPromotion
 		}
 		switch {
 		case pTo == NoPiece:
-			return NewMove(flags, from, to, 0)
+			return newMove(flags, from, to, 0)
 		case pTo.Color() != p.Side:
-			return NewMove(flags|MoveFlagCapture, from, to, pTo)
+			return newMove(flags|moveFlagCapture, from, to, pTo)
 		default:
 			return Move(0)
 		}
@@ -112,8 +112,8 @@ func NewMoveFromUsi(p *Position, s string) Move {
 		} else {
 			pc, _ = NewPiece(strings.ToLower(s[0:1]))
 		}
-		to := NewSquareIndex(s[2:4])
-		return NewMove(MoveFlagDrop, 0, to, pc)
+		to := newSquareIndex(s[2:4])
+		return newMove(moveFlagDrop, 0, to, pc)
 	}
 	return Move(0)
 }

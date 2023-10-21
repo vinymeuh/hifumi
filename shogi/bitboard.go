@@ -33,7 +33,7 @@ func (b Bitboard) StringBoard() string {
 		if i != 0 && i%9 == 0 {
 			board += "\n"
 		}
-		if b.GetBit(SquareIndex(i)) == 1 {
+		if b.GetBit(squareIndex(i)) == 1 {
 			board += "1"
 		} else {
 			board += "0"
@@ -43,7 +43,7 @@ func (b Bitboard) StringBoard() string {
 }
 
 // SetBit returns a new Bitboard with the bit at the given square set to 1.
-func (b Bitboard) SetBit(sq SquareIndex) Bitboard {
+func (b Bitboard) SetBit(sq squareIndex) Bitboard {
 	mask := squareSetMask[sq]
 	return Bitboard{
 		b.Low | mask.Low,
@@ -52,7 +52,7 @@ func (b Bitboard) SetBit(sq SquareIndex) Bitboard {
 }
 
 // ClearBit returns a new Bitboard with the bit at the given square set to 0.
-func (b Bitboard) ClearBit(sq SquareIndex) Bitboard {
+func (b Bitboard) ClearBit(sq squareIndex) Bitboard {
 	mask := squareSetMask[sq]
 	return Bitboard{
 		b.Low &^ mask.Low,
@@ -61,7 +61,7 @@ func (b Bitboard) ClearBit(sq SquareIndex) Bitboard {
 }
 
 // GetBit returns the value of the bit at the given square.
-func (b Bitboard) GetBit(sq SquareIndex) uint {
+func (b Bitboard) GetBit(sq squareIndex) uint {
 	if sq < 64 {
 		return uint((b.Low >> sq) & 1)
 	}
@@ -139,15 +139,88 @@ func (b Bitboard) Merge() uint64 {
 	return b.Low | b.High
 }
 
-var squareSetMask = [SQUARES]Bitboard{}
-
-func init() {
-	for i := 0; i < 64; i++ {
-		squareSetMask[i] = Bitboard{1 << i, 0}
-	}
-	for i := 0; i < 17; i++ {
-		squareSetMask[64+i] = Bitboard{0, 1 << i}
-	}
+var squareSetMask = [SQUARES]Bitboard{
+	{High: 0x0, Low: 0x1},
+	{High: 0x0, Low: 0x1 << 1},
+	{High: 0x0, Low: 0x1 << 2},
+	{High: 0x0, Low: 0x1 << 3},
+	{High: 0x0, Low: 0x1 << 4},
+	{High: 0x0, Low: 0x1 << 5},
+	{High: 0x0, Low: 0x1 << 6},
+	{High: 0x0, Low: 0x1 << 7},
+	{High: 0x0, Low: 0x1 << 8},
+	{High: 0x0, Low: 0x1 << 9},
+	{High: 0x0, Low: 0x1 << 10},
+	{High: 0x0, Low: 0x1 << 11},
+	{High: 0x0, Low: 0x1 << 12},
+	{High: 0x0, Low: 0x1 << 13},
+	{High: 0x0, Low: 0x1 << 14},
+	{High: 0x0, Low: 0x1 << 15},
+	{High: 0x0, Low: 0x1 << 16},
+	{High: 0x0, Low: 0x1 << 17},
+	{High: 0x0, Low: 0x1 << 18},
+	{High: 0x0, Low: 0x1 << 19},
+	{High: 0x0, Low: 0x1 << 20},
+	{High: 0x0, Low: 0x1 << 21},
+	{High: 0x0, Low: 0x1 << 22},
+	{High: 0x0, Low: 0x1 << 23},
+	{High: 0x0, Low: 0x1 << 24},
+	{High: 0x0, Low: 0x1 << 25},
+	{High: 0x0, Low: 0x1 << 26},
+	{High: 0x0, Low: 0x1 << 27},
+	{High: 0x0, Low: 0x1 << 28},
+	{High: 0x0, Low: 0x1 << 29},
+	{High: 0x0, Low: 0x1 << 30},
+	{High: 0x0, Low: 0x1 << 31},
+	{High: 0x0, Low: 0x1 << 32},
+	{High: 0x0, Low: 0x1 << 33},
+	{High: 0x0, Low: 0x1 << 34},
+	{High: 0x0, Low: 0x1 << 35},
+	{High: 0x0, Low: 0x1 << 36},
+	{High: 0x0, Low: 0x1 << 37},
+	{High: 0x0, Low: 0x1 << 38},
+	{High: 0x0, Low: 0x1 << 39},
+	{High: 0x0, Low: 0x1 << 40},
+	{High: 0x0, Low: 0x1 << 41},
+	{High: 0x0, Low: 0x1 << 42},
+	{High: 0x0, Low: 0x1 << 43},
+	{High: 0x0, Low: 0x1 << 44},
+	{High: 0x0, Low: 0x1 << 45},
+	{High: 0x0, Low: 0x1 << 46},
+	{High: 0x0, Low: 0x1 << 47},
+	{High: 0x0, Low: 0x1 << 48},
+	{High: 0x0, Low: 0x1 << 49},
+	{High: 0x0, Low: 0x1 << 50},
+	{High: 0x0, Low: 0x1 << 51},
+	{High: 0x0, Low: 0x1 << 52},
+	{High: 0x0, Low: 0x1 << 53},
+	{High: 0x0, Low: 0x1 << 54},
+	{High: 0x0, Low: 0x1 << 55},
+	{High: 0x0, Low: 0x1 << 56},
+	{High: 0x0, Low: 0x1 << 57},
+	{High: 0x0, Low: 0x1 << 58},
+	{High: 0x0, Low: 0x1 << 59},
+	{High: 0x0, Low: 0x1 << 60},
+	{High: 0x0, Low: 0x1 << 61},
+	{High: 0x0, Low: 0x1 << 62},
+	{High: 0x0, Low: 0x1 << 63},
+	{High: 0x1, Low: 0x0},
+	{High: 0x1 << 1, Low: 0x0},
+	{High: 0x1 << 2, Low: 0x0},
+	{High: 0x1 << 3, Low: 0x0},
+	{High: 0x1 << 4, Low: 0x0},
+	{High: 0x1 << 5, Low: 0x0},
+	{High: 0x1 << 6, Low: 0x0},
+	{High: 0x1 << 7, Low: 0x0},
+	{High: 0x1 << 8, Low: 0x0},
+	{High: 0x1 << 9, Low: 0x0},
+	{High: 0x1 << 10, Low: 0x0},
+	{High: 0x1 << 11, Low: 0x0},
+	{High: 0x1 << 12, Low: 0x0},
+	{High: 0x1 << 13, Low: 0x0},
+	{High: 0x1 << 14, Low: 0x0},
+	{High: 0x1 << 15, Low: 0x0},
+	{High: 0x1 << 16, Low: 0x0},
 }
 
 var (

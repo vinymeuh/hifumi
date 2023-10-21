@@ -1,3 +1,4 @@
 /hifumi
 *.prof
-coverage.out
+*.out
+*.html

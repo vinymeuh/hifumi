@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/vinymeuh/hifumi/shogi"
-	"github.com/vinymeuh/hifumi/shogi/movegen"
 )
 
 func TestPerft(t *testing.T) {
@@ -32,7 +31,7 @@ func TestPerft(t *testing.T) {
 				if err != nil {
 					t.Fatalf("\nUnexpected error setting startpos: %v", err)
 				}
-				result := movegen.Perft(gs, tc.Depth)
+				result := shogi.Perft(gs, tc.Depth)
 
 				// Moves count
 				if tests.Moves != result.MovesCount {
@@ -40,22 +39,7 @@ func TestPerft(t *testing.T) {
 				}
 
 				// Drops & Promotions count
-				drops := 0
-				promotions := 0
-				for m := range result.Moves {
-					if strings.Contains(m, "*") {
-						drops++
-					}
-					if strings.HasSuffix(m, "+") {
-						promotions++
-					}
-				}
-				if tests.Drops != drops {
-					t.Errorf("\nDrops count mismatch: expected=%d, got=%d", tests.Drops, drops)
-				}
-				if tests.Promotions != promotions {
-					t.Errorf("\nPromotions count mismatch: expected=%d, got=%d", tests.Promotions, promotions)
-				}
+				testDropsPromotes(t, tests, result)
 
 				// Nodes count
 				if tc.Nodes != result.NodesCount {
@@ -63,17 +47,40 @@ func TestPerft(t *testing.T) {
 				}
 
 				// Check some Move's nodes count
-				for expectedMove, expectedNodes := range tc.Moves {
-					nodes, ok := result.Moves[expectedMove]
-					if ok {
-						if expectedNodes != nodes {
-							t.Errorf("\nNodes count mismatch for move %s: expected=%d, got=%d", expectedMove, expectedNodes, nodes)
-						}
-					} else {
-						t.Errorf("\nMissing move %s", expectedMove)
-					}
-				}
+				testMoveNodesCount(t, &tc, result)
 			})
+		}
+	}
+}
+
+func testDropsPromotes(t *testing.T, tests *jsonData, result *shogi.PerftResult) {
+	drops := 0
+	promotions := 0
+	for m := range result.Moves {
+		if strings.Contains(m, "*") {
+			drops++
+		}
+		if strings.HasSuffix(m, "+") {
+			promotions++
+		}
+	}
+	if tests.Drops != drops {
+		t.Errorf("\nDrops count mismatch: expected=%d, got=%d", tests.Drops, drops)
+	}
+	if tests.Promotions != promotions {
+		t.Errorf("\nPromotions count mismatch: expected=%d, got=%d", tests.Promotions, promotions)
+	}
+}
+
+func testMoveNodesCount(t *testing.T, tc *jsonDataDetail, result *shogi.PerftResult) {
+	for expectedMove, expectedNodes := range tc.Moves {
+		nodes, ok := result.Moves[expectedMove]
+		if ok {
+			if expectedNodes != nodes {
+				t.Errorf("\nNodes count mismatch for move %s: expected=%d, got=%d", expectedMove, expectedNodes, nodes)
+			}
+		} else {
+			t.Errorf("\nMissing move %s", expectedMove)
 		}
 	}
 }
