@@ -23,7 +23,7 @@ func TestString(t *testing.T) {
 
 	for i, tc := range tests {
 		t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
-			bb := Bitboard{tc.bb[1], tc.bb[0]}.String()
+			bb := bitboard{tc.bb[1], tc.bb[0]}.String()
 			if tc.expected != bb {
 				t.Fatalf(fatalfFormat, tc.expected, bb)
 			}
@@ -47,10 +47,10 @@ func TestGetBit(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		bb := Bitboard{tc.bb[1], tc.bb[0]}
+		bb := bitboard{tc.bb[1], tc.bb[0]}
 		for j := uint(0); j < SQUARES; j++ {
 			t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
-				v := bb.GetBit(squareIndex(j))
+				v := bb.bit(squareIndex(j))
 				inGet1 := slices.Contains(tc.gets1, j)
 				switch {
 				case inGet1 && v == 0:
@@ -80,8 +80,8 @@ func TestNot(t *testing.T) {
 
 	for i, tc := range tests {
 		t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
-			bb := Bitboard{tc.bb[1], tc.bb[0]}.Not()
-			expected := Bitboard{tc.expected[1], tc.expected[0]}
+			bb := bitboard{tc.bb[1], tc.bb[0]}.Not()
+			expected := bitboard{tc.expected[1], tc.expected[0]}
 			if expected != bb {
 				t.Fatalf(fatalfFormat, expected, bb)
 			}
@@ -105,18 +105,18 @@ func TestAndOr(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		bb1 := Bitboard{tc.bb1[1], tc.bb1[0]}
-		bb2 := Bitboard{tc.bb2[1], tc.bb2[0]}
+		bb1 := bitboard{tc.bb1[1], tc.bb1[0]}
+		bb2 := bitboard{tc.bb2[1], tc.bb2[0]}
 		t.Run(fmt.Sprintf("TestCase %02d And", i+1), func(t *testing.T) {
 			bb := bb1.And(bb2)
-			expected := Bitboard{tc.and[1], tc.and[0]}
+			expected := bitboard{tc.and[1], tc.and[0]}
 			if expected != bb {
 				t.Fatalf(fatalfFormat, expected, bb)
 			}
 		})
 		t.Run(fmt.Sprintf("TestCase %02d Or", i+1), func(t *testing.T) {
 			bb := bb1.Or(bb2)
-			expected := Bitboard{tc.or[1], tc.or[0]}
+			expected := bitboard{tc.or[1], tc.or[0]}
 			if expected != bb {
 				t.Fatalf(fatalfFormat, expected, bb)
 			}
@@ -157,40 +157,11 @@ func TestLsb(t *testing.T) {
 
 	for i, tc := range tests {
 		t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
-			lsb := Bitboard{tc.bb[1], tc.bb[0]}.Lsb()
+			lsb := bitboard{tc.bb[1], tc.bb[0]}.lsb()
 			if tc.expected != lsb {
 				t.Fatalf(fatalfFormat, fmt.Sprint(tc.expected), fmt.Sprint(lsb))
 			}
 		})
 	}
 
-}
-
-func TestRShift(t *testing.T) {
-	tests := []struct { //nolint:govet
-		bb       [2]uint64 // high, low
-		shift    uint
-		expected [2]uint64 // high, low
-	}{
-		{
-			[2]uint64{0b00001100000000001, 0b1000000001110000000001000000000000000000100000001000000000010001},
-			1,
-			[2]uint64{0b00000110000000000, 0b1100000000111000000000100000000000000000010000000100000000001000},
-		},
-		{
-			[2]uint64{0b10001100000000001, 0b1000000001110000000001000000000000000000100000001000000000010001},
-			16,
-			[2]uint64{0b00000000000000001, 0b0001100000000001100000000111000000000100000000000000000010000000},
-		},
-	}
-
-	for i, tc := range tests {
-		t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
-			bb := Bitboard{tc.bb[1], tc.bb[0]}.RShift(tc.shift)
-			expected := Bitboard{tc.expected[1], tc.expected[0]}
-			if expected != bb {
-				t.Fatalf(fatalfFormat, expected, bb)
-			}
-		})
-	}
 }

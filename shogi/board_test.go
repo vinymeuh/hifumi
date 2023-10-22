@@ -16,7 +16,7 @@ func TestSquareIndex(t *testing.T) {
 		{coordinates: "1c", index: squareIndex(26)},
 		{coordinates: "7f", index: squareIndex(47)},
 		{coordinates: "7g", index: squareIndex(56)},
-		{coordinates: "9a", index: SQ9a},
+		{coordinates: "9a", index: sq9a},
 	}
 
 	for _, tc := range tests {

@@ -7,70 +7,70 @@ import (
 	"math"
 )
 
-// A Bitboard is a binary representation that encodes all the squares on the board.
+// A bitboard is a binary representation that encodes all the squares on the board.
 // The 81 squares of a Shogiban are divided into two chunks.
-type Bitboard struct {
-	Low  uint64
-	High uint64
+type bitboard struct {
+	low  uint64
+	high uint64
 }
 
 const (
 	highMask = 0x1FFFF // use only the 17 least significant bits of high.
 )
 
-// Zero represents the zero value of a Bitboard.
-var Zero = Bitboard{0, 0}
+// bbZero represents the zero value of a bitboard.
+var bbZero = bitboard{0, 0}
 
-// String returns the string representation of a Bitboard.
-func (b Bitboard) String() string {
-	return fmt.Sprintf("%017b%064b", b.High, b.Low)
+// String returns the string representation of a bitboard.
+func (b bitboard) String() string {
+	return fmt.Sprintf("%017b%064b", b.high, b.low)
 }
 
-// StringBoard returns the representation of a Bitboard as a Shogi board string.
-func (b Bitboard) StringBoard() string {
-	var board string
-	for i := 0; i < SQUARES; i++ {
-		if i != 0 && i%9 == 0 {
-			board += "\n"
-		}
-		if b.GetBit(squareIndex(i)) == 1 {
-			board += "1"
-		} else {
-			board += "0"
-		}
-	}
-	return board
-}
+// board returns a Shogi board representation of a bitboard.
+// func (b bitboard) board() string {
+// 	var board string
+// 	for i := 0; i < SQUARES; i++ {
+// 		if i != 0 && i%9 == 0 {
+// 			board += "\n"
+// 		}
+// 		if b.bit(squareIndex(i)) == 1 {
+// 			board += "1"
+// 		} else {
+// 			board += "0"
+// 		}
+// 	}
+// 	return board
+// }
 
-// SetBit returns a new Bitboard with the bit at the given square set to 1.
-func (b Bitboard) SetBit(sq squareIndex) Bitboard {
+// set returns a new bitboard with the bit at the given square set to 1.
+func (b bitboard) set(sq squareIndex) bitboard {
 	mask := squareSetMask[sq]
-	return Bitboard{
-		b.Low | mask.Low,
-		b.High | mask.High,
+	return bitboard{
+		low:  b.low | mask.low,
+		high: b.high | mask.high,
 	}
 }
 
-// ClearBit returns a new Bitboard with the bit at the given square set to 0.
-func (b Bitboard) ClearBit(sq squareIndex) Bitboard {
+// clear returns a new bitboard with the bit at the given square set to 0.
+func (b bitboard) clear(sq squareIndex) bitboard {
 	mask := squareSetMask[sq]
-	return Bitboard{
-		b.Low &^ mask.Low,
-		b.High &^ mask.High,
+	return bitboard{
+		low:  b.low &^ mask.low,
+		high: b.high &^ mask.high,
 	}
 }
 
-// GetBit returns the value of the bit at the given square.
-func (b Bitboard) GetBit(sq squareIndex) uint {
+// bit returns the value of the bit at the given square.
+func (b bitboard) bit(sq squareIndex) uint {
 	if sq < 64 {
-		return uint((b.Low >> sq) & 1)
+		return uint((b.low >> sq) & 1)
 	}
-	return uint((b.High >> uint(sq-64)) & 1)
+	return uint((b.high >> uint(sq-64)) & 1)
 }
 
-// PopCount return the bit population count.
-func (b Bitboard) PopCount() uint {
-	return popcount64(b.Low) + popcount64(b.High)
+// popCount return the bit population count.
+func (b bitboard) popCount() uint {
+	return popcount64(b.low) + popcount64(b.high)
 }
 
 func popcount64(x uint64) uint { // From https://github.com/golang/go/issues/4988#c11
@@ -82,151 +82,136 @@ func popcount64(x uint64) uint { // From https://github.com/golang/go/issues/498
 	return uint(x >> 56)
 }
 
-// And returns a new Bitboard with the bitwise AND operation applied.
-func (b Bitboard) And(other Bitboard) Bitboard {
-	return Bitboard{
-		b.Low & other.Low,
-		b.High & other.High,
+// And returns a new bitboard with the bitwise AND operation applied.
+func (b bitboard) And(other bitboard) bitboard {
+	return bitboard{
+		b.low & other.low,
+		b.high & other.high,
 	}
 }
 
-// Or returns a new Bitboard with the bitwise OR operation applied.
-func (b Bitboard) Or(other Bitboard) Bitboard {
-	return Bitboard{
-		b.Low | other.Low,
-		b.High | other.High,
+// Or returns a new bitboard with the bitwise OR operation applied.
+func (b bitboard) Or(other bitboard) bitboard {
+	return bitboard{
+		low:  b.low | other.low,
+		high: b.high | other.high,
 	}
 
 }
 
-// Not returns a new Bitboard with the bitwise NOT operation applied.
-func (b Bitboard) Not() Bitboard {
-	return Bitboard{
-		^b.Low,
-		^b.High & highMask,
+// Not returns a new bitboard with the bitwise NOT operation applied.
+func (b bitboard) Not() bitboard {
+	return bitboard{
+		low:  ^b.low,
+		high: ^b.high & highMask,
 	}
 }
 
-// Lsb returns the index of the first bit that is turned on from the LSB side.
-func (b Bitboard) Lsb() int {
-	if b.Low > 0 {
-		return int(math.Log2(float64(b.Low & -b.Low)))
+// lsb returns the index of the first bit that is turned on from the LSB side.
+func (b bitboard) lsb() int {
+	if b.low > 0 {
+		return int(math.Log2(float64(b.low & -b.low)))
 	}
-	if b.High > 0 {
-		return 64 + int(math.Log2(float64(b.High&-b.High)))
+	if b.high > 0 {
+		return 64 + int(math.Log2(float64(b.high&-b.high)))
 	}
 	return -1
 }
 
-// RShift returns a new Bitboard right shifted to n bits.
-func (b Bitboard) RShift(n uint) Bitboard {
-	if n < 17 {
-		return Bitboard{
-			(b.Low >> n) | ((b.High << (64 - 17)) << (17 - n)),
-			(b.High >> n),
-		}
-	} else if n >= 17 && n < 81 {
-		return Bitboard{
-			(b.Low >> n) | ((b.High << (64 - 17)) << (17 - n)),
-			0,
-		}
-	}
-	return Zero
+// merge combines the low and high components of a bitboard into a single 64-bit unsigned integer.
+// Used for magic bitboardc.
+func (b bitboard) merge() uint64 {
+	return b.low | b.high
 }
 
-// Mul returns a new Bitboard equals to the product of the two.
-func (b Bitboard) Merge() uint64 {
-	return b.Low | b.High
-}
-
-var squareSetMask = [SQUARES]Bitboard{
-	{High: 0x0, Low: 0x1},
-	{High: 0x0, Low: 0x1 << 1},
-	{High: 0x0, Low: 0x1 << 2},
-	{High: 0x0, Low: 0x1 << 3},
-	{High: 0x0, Low: 0x1 << 4},
-	{High: 0x0, Low: 0x1 << 5},
-	{High: 0x0, Low: 0x1 << 6},
-	{High: 0x0, Low: 0x1 << 7},
-	{High: 0x0, Low: 0x1 << 8},
-	{High: 0x0, Low: 0x1 << 9},
-	{High: 0x0, Low: 0x1 << 10},
-	{High: 0x0, Low: 0x1 << 11},
-	{High: 0x0, Low: 0x1 << 12},
-	{High: 0x0, Low: 0x1 << 13},
-	{High: 0x0, Low: 0x1 << 14},
-	{High: 0x0, Low: 0x1 << 15},
-	{High: 0x0, Low: 0x1 << 16},
-	{High: 0x0, Low: 0x1 << 17},
-	{High: 0x0, Low: 0x1 << 18},
-	{High: 0x0, Low: 0x1 << 19},
-	{High: 0x0, Low: 0x1 << 20},
-	{High: 0x0, Low: 0x1 << 21},
-	{High: 0x0, Low: 0x1 << 22},
-	{High: 0x0, Low: 0x1 << 23},
-	{High: 0x0, Low: 0x1 << 24},
-	{High: 0x0, Low: 0x1 << 25},
-	{High: 0x0, Low: 0x1 << 26},
-	{High: 0x0, Low: 0x1 << 27},
-	{High: 0x0, Low: 0x1 << 28},
-	{High: 0x0, Low: 0x1 << 29},
-	{High: 0x0, Low: 0x1 << 30},
-	{High: 0x0, Low: 0x1 << 31},
-	{High: 0x0, Low: 0x1 << 32},
-	{High: 0x0, Low: 0x1 << 33},
-	{High: 0x0, Low: 0x1 << 34},
-	{High: 0x0, Low: 0x1 << 35},
-	{High: 0x0, Low: 0x1 << 36},
-	{High: 0x0, Low: 0x1 << 37},
-	{High: 0x0, Low: 0x1 << 38},
-	{High: 0x0, Low: 0x1 << 39},
-	{High: 0x0, Low: 0x1 << 40},
-	{High: 0x0, Low: 0x1 << 41},
-	{High: 0x0, Low: 0x1 << 42},
-	{High: 0x0, Low: 0x1 << 43},
-	{High: 0x0, Low: 0x1 << 44},
-	{High: 0x0, Low: 0x1 << 45},
-	{High: 0x0, Low: 0x1 << 46},
-	{High: 0x0, Low: 0x1 << 47},
-	{High: 0x0, Low: 0x1 << 48},
-	{High: 0x0, Low: 0x1 << 49},
-	{High: 0x0, Low: 0x1 << 50},
-	{High: 0x0, Low: 0x1 << 51},
-	{High: 0x0, Low: 0x1 << 52},
-	{High: 0x0, Low: 0x1 << 53},
-	{High: 0x0, Low: 0x1 << 54},
-	{High: 0x0, Low: 0x1 << 55},
-	{High: 0x0, Low: 0x1 << 56},
-	{High: 0x0, Low: 0x1 << 57},
-	{High: 0x0, Low: 0x1 << 58},
-	{High: 0x0, Low: 0x1 << 59},
-	{High: 0x0, Low: 0x1 << 60},
-	{High: 0x0, Low: 0x1 << 61},
-	{High: 0x0, Low: 0x1 << 62},
-	{High: 0x0, Low: 0x1 << 63},
-	{High: 0x1, Low: 0x0},
-	{High: 0x1 << 1, Low: 0x0},
-	{High: 0x1 << 2, Low: 0x0},
-	{High: 0x1 << 3, Low: 0x0},
-	{High: 0x1 << 4, Low: 0x0},
-	{High: 0x1 << 5, Low: 0x0},
-	{High: 0x1 << 6, Low: 0x0},
-	{High: 0x1 << 7, Low: 0x0},
-	{High: 0x1 << 8, Low: 0x0},
-	{High: 0x1 << 9, Low: 0x0},
-	{High: 0x1 << 10, Low: 0x0},
-	{High: 0x1 << 11, Low: 0x0},
-	{High: 0x1 << 12, Low: 0x0},
-	{High: 0x1 << 13, Low: 0x0},
-	{High: 0x1 << 14, Low: 0x0},
-	{High: 0x1 << 15, Low: 0x0},
-	{High: 0x1 << 16, Low: 0x0},
+var squareSetMask = [SQUARES]bitboard{
+	{high: 0x0, low: 0x1},
+	{high: 0x0, low: 0x1 << 1},
+	{high: 0x0, low: 0x1 << 2},
+	{high: 0x0, low: 0x1 << 3},
+	{high: 0x0, low: 0x1 << 4},
+	{high: 0x0, low: 0x1 << 5},
+	{high: 0x0, low: 0x1 << 6},
+	{high: 0x0, low: 0x1 << 7},
+	{high: 0x0, low: 0x1 << 8},
+	{high: 0x0, low: 0x1 << 9},
+	{high: 0x0, low: 0x1 << 10},
+	{high: 0x0, low: 0x1 << 11},
+	{high: 0x0, low: 0x1 << 12},
+	{high: 0x0, low: 0x1 << 13},
+	{high: 0x0, low: 0x1 << 14},
+	{high: 0x0, low: 0x1 << 15},
+	{high: 0x0, low: 0x1 << 16},
+	{high: 0x0, low: 0x1 << 17},
+	{high: 0x0, low: 0x1 << 18},
+	{high: 0x0, low: 0x1 << 19},
+	{high: 0x0, low: 0x1 << 20},
+	{high: 0x0, low: 0x1 << 21},
+	{high: 0x0, low: 0x1 << 22},
+	{high: 0x0, low: 0x1 << 23},
+	{high: 0x0, low: 0x1 << 24},
+	{high: 0x0, low: 0x1 << 25},
+	{high: 0x0, low: 0x1 << 26},
+	{high: 0x0, low: 0x1 << 27},
+	{high: 0x0, low: 0x1 << 28},
+	{high: 0x0, low: 0x1 << 29},
+	{high: 0x0, low: 0x1 << 30},
+	{high: 0x0, low: 0x1 << 31},
+	{high: 0x0, low: 0x1 << 32},
+	{high: 0x0, low: 0x1 << 33},
+	{high: 0x0, low: 0x1 << 34},
+	{high: 0x0, low: 0x1 << 35},
+	{high: 0x0, low: 0x1 << 36},
+	{high: 0x0, low: 0x1 << 37},
+	{high: 0x0, low: 0x1 << 38},
+	{high: 0x0, low: 0x1 << 39},
+	{high: 0x0, low: 0x1 << 40},
+	{high: 0x0, low: 0x1 << 41},
+	{high: 0x0, low: 0x1 << 42},
+	{high: 0x0, low: 0x1 << 43},
+	{high: 0x0, low: 0x1 << 44},
+	{high: 0x0, low: 0x1 << 45},
+	{high: 0x0, low: 0x1 << 46},
+	{high: 0x0, low: 0x1 << 47},
+	{high: 0x0, low: 0x1 << 48},
+	{high: 0x0, low: 0x1 << 49},
+	{high: 0x0, low: 0x1 << 50},
+	{high: 0x0, low: 0x1 << 51},
+	{high: 0x0, low: 0x1 << 52},
+	{high: 0x0, low: 0x1 << 53},
+	{high: 0x0, low: 0x1 << 54},
+	{high: 0x0, low: 0x1 << 55},
+	{high: 0x0, low: 0x1 << 56},
+	{high: 0x0, low: 0x1 << 57},
+	{high: 0x0, low: 0x1 << 58},
+	{high: 0x0, low: 0x1 << 59},
+	{high: 0x0, low: 0x1 << 60},
+	{high: 0x0, low: 0x1 << 61},
+	{high: 0x0, low: 0x1 << 62},
+	{high: 0x0, low: 0x1 << 63},
+	{high: 0x1, low: 0x0},
+	{high: 0x1 << 1, low: 0x0},
+	{high: 0x1 << 2, low: 0x0},
+	{high: 0x1 << 3, low: 0x0},
+	{high: 0x1 << 4, low: 0x0},
+	{high: 0x1 << 5, low: 0x0},
+	{high: 0x1 << 6, low: 0x0},
+	{high: 0x1 << 7, low: 0x0},
+	{high: 0x1 << 8, low: 0x0},
+	{high: 0x1 << 9, low: 0x0},
+	{high: 0x1 << 10, low: 0x0},
+	{high: 0x1 << 11, low: 0x0},
+	{high: 0x1 << 12, low: 0x0},
+	{high: 0x1 << 13, low: 0x0},
+	{high: 0x1 << 14, low: 0x0},
+	{high: 0x1 << 15, low: 0x0},
+	{high: 0x1 << 16, low: 0x0},
 }
 
 var (
-	Rank1Mask = Bitboard{High: 0b00000000000000000, Low: 0b0000000000000000000000000000000000000000000000000000000111111111}
-	Rank9Mask = Bitboard{High: 0b11111111100000000, Low: 0b0000000000000000000000000000000000000000000000000000000000000000}
+	maskRank1 = bitboard{high: 0b00000000000000000, low: 0b0000000000000000000000000000000000000000000000000000000111111111}
+	maskRank9 = bitboard{high: 0b11111111100000000, low: 0b0000000000000000000000000000000000000000000000000000000000000000}
 
-	File1Mask = Bitboard{High: 0b10000000010000000, Low: 0b0100000000100000000100000000100000000100000000100000000100000000}
-	File9Mask = Bitboard{High: 0b00000000100000000, Low: 0b1000000001000000001000000001000000001000000001000000001000000001}
+	maskFile1 = bitboard{high: 0b10000000010000000, low: 0b0100000000100000000100000000100000000100000000100000000100000000}
+	maskFile9 = bitboard{high: 0b00000000100000000, low: 0b1000000001000000001000000001000000001000000001000000001000000001}
 )

@@ -15,9 +15,9 @@ type Position struct {
 	// Move count
 	Ply int
 	// Bitboards of pieces by color
-	BBbyColor [COLORS]Bitboard
+	BBbyColor [COLORS]bitboard
 	// Bitboards of pieces by piece
-	BBbyPiece [COLORS * PIECE_TYPES]Bitboard
+	BBbyPiece [COLORS * PIECE_TYPES]bitboard
 }
 
 // New creates an empty Position with no pieces on the board or in the hands.
@@ -31,8 +31,8 @@ func newPosition() *Position {
 		},
 		Side:      Black,
 		Ply:       0,
-		BBbyColor: [COLORS]Bitboard{},
-		BBbyPiece: [COLORS * PIECE_TYPES]Bitboard{},
+		BBbyColor: [COLORS]bitboard{},
+		BBbyPiece: [COLORS * PIECE_TYPES]bitboard{},
 	}
 
 	return &p
@@ -117,63 +117,19 @@ func (p *Position) UnapplyMove(m Move) {
 func (p *Position) setPiece(piece Piece, square squareIndex) {
 	p.Board[square] = piece
 	p.setBitboards(piece, square)
-	// p.checkBBbyColorConsistency()
-	// p.checkBBbyPieceConsistency()
 }
 
 func (p *Position) setBitboards(piece Piece, square squareIndex) {
-	p.BBbyColor[piece.Color()] = p.BBbyColor[piece.Color()].SetBit(square)
-	p.BBbyPiece[piece] = p.BBbyPiece[piece].SetBit(square)
+	p.BBbyColor[piece.Color()] = p.BBbyColor[piece.Color()].set(square)
+	p.BBbyPiece[piece] = p.BBbyPiece[piece].set(square)
 }
 
 func (p *Position) clearPiece(piece Piece, square squareIndex) {
 	p.Board[square] = NoPiece
 	p.clearBitboards(piece, square)
-	// p.checkBBbyColorConsistency()
-	// p.checkBBbyPieceConsistency()
 }
 
 func (p *Position) clearBitboards(piece Piece, square squareIndex) {
-	p.BBbyColor[piece.Color()] = p.BBbyColor[piece.Color()].ClearBit(square)
-	p.BBbyPiece[piece] = p.BBbyPiece[piece].ClearBit(square)
+	p.BBbyColor[piece.Color()] = p.BBbyColor[piece.Color()].clear(square)
+	p.BBbyPiece[piece] = p.BBbyPiece[piece].clear(square)
 }
-
-// func (p *Position) checkBBbyColorConsistency() {
-// 	for sq := squareIndex(0); sq < SQUARES; sq++ {
-// 		piece := p.Board[sq]
-// 		switch {
-// 		case piece == NoPiece:
-// 			if p.BBbyColor[Black].GetBit(sq) != 0 || p.BBbyColor[White].GetBit(sq) != 0 {
-// 				panic("BBbyColor inconsistency (NoPiece)")
-// 			}
-// 		case piece.Color() == Black:
-// 			if p.BBbyColor[Black].GetBit(sq) != 1 || p.BBbyColor[White].GetBit(sq) != 0 {
-// 				panic("BBbyColor inconsistency (Black)")
-// 			}
-// 		case piece.Color() == White:
-// 			if p.BBbyColor[Black].GetBit(sq) != 0 || p.BBbyColor[White].GetBit(sq) != 1 {
-// 				panic("BBbyColor inconsistency (White)")
-// 			}
-// 		}
-// 	}
-// }
-
-// func (p *Position) checkBBbyPieceConsistency() {
-// 	for sq := squareIndex(0); sq < SQUARES; sq++ {
-// 		piece := p.Board[sq]
-// 		switch {
-// 		case piece == NoPiece:
-// 			for _, bb := range p.BBbyPiece {
-// 				if bb.GetBit(sq) != 0 {
-// 					panic("BBbyPiece inconsistency (NoPiece)")
-// 				}
-// 			}
-// 		default:
-// 			for i, bb := range p.BBbyPiece {
-// 				if (int(piece) == i && bb.GetBit(sq) != 1) || (int(piece) != i && bb.GetBit(sq) != 0) {
-// 					panic("BBbyPiece inconsistency (Piece)")
-// 				}
-// 			}
-// 		}
-// 	}
-// }

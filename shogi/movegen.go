@@ -195,17 +195,17 @@ func WhitePromotedRookMoves(gs *Position, list *MoveList) {
 // promoteFunc is a function type that checks promotion rules for moves.
 type promoteFunc func(from, to squareIndex) (can, must bool)
 
-func generateMoves(from squareIndex, attacks Bitboard, gs *Position, promote promoteFunc, list *MoveList) {
+func generateMoves(from squareIndex, attacks bitboard, gs *Position, promote promoteFunc, list *MoveList) {
 	mycolor := gs.Side
 	myopponent := mycolor.Opponent()
 
 	// generate moves for the current piece on "from"
-	for attacks != Zero {
-		to := squareIndex(attacks.Lsb())
+	for attacks != bbZero {
+		to := squareIndex(attacks.lsb())
 		canPromote, mustPromote := promote(from, to)
 
 		switch {
-		case gs.BBbyColor[myopponent].GetBit(to) == 1: // capture
+		case gs.BBbyColor[myopponent].bit(to) == 1: // capture
 			captured := gs.Board[to]
 			if canPromote {
 				list.Push(newMove(
@@ -224,7 +224,7 @@ func generateMoves(from squareIndex, attacks Bitboard, gs *Position, promote pro
 				))
 			}
 
-		case gs.BBbyColor[mycolor].GetBit(to) == 0: // empty destination
+		case gs.BBbyColor[mycolor].bit(to) == 0: // empty destination
 			if canPromote {
 				list.Push(newMove(
 					moveFlagMove|moveFlagPromotion,
@@ -242,7 +242,7 @@ func generateMoves(from squareIndex, attacks Bitboard, gs *Position, promote pro
 				))
 			}
 		}
-		attacks = attacks.ClearBit(to)
+		attacks = attacks.clear(to)
 	}
 }
 
@@ -251,19 +251,19 @@ func generateMoves(from squareIndex, attacks Bitboard, gs *Position, promote pro
 // ********************************************* //
 
 // attacksTable is an array of bitboard indexed by square, used for non sliding pieces.
-type AttacksTable [SQUARES]Bitboard
+type AttacksTable [SQUARES]bitboard
 
 // newAttacksTable creates a new attacksTable from an array of move directions
 func newAttacksTable(moveDirections []direction) AttacksTable {
 	var at AttacksTable
 	for sq := squareIndex(0); sq < SQUARES; sq++ {
-		bb := Zero
+		bb := bbZero
 		for _, d := range moveDirections {
 			newsq, err := sq.Shift(d)
 			if err != nil {
 				continue
 			}
-			bb = bb.SetBit(newsq)
+			bb = bb.set(newsq)
 		}
 		at[sq] = bb
 	}
@@ -282,12 +282,12 @@ func (rules nonSlidingPieceMoveRules) GenerateMoves(piece Piece, gs *Position, l
 	mypieces := gs.BBbyPiece[piece]
 
 	// iterate over each of our pieces
-	for mypieces != Zero {
-		from := squareIndex(mypieces.Lsb())
+	for mypieces != bbZero {
+		from := squareIndex(mypieces.lsb())
 		attacks := rules.Attacks[from]
 		// generate moves for the current piece on "from"
 		generateMoves(from, attacks, gs, rules.Promote, list)
-		mypieces = mypieces.ClearBit(from)
+		mypieces = mypieces.clear(from)
 	}
 }
 
@@ -299,10 +299,10 @@ var (
 		}),
 		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to <= SQ1c && to > SQ1a:
+			case to <= sq1c && to > sq1a:
 				can = true
 				must = false
-			case to <= SQ1a:
+			case to <= sq1a:
 				can = true
 				must = true
 			}
@@ -317,10 +317,10 @@ var (
 		}),
 		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to >= SQ9g && to < SQ9a:
+			case to >= sq9g && to < sq9a:
 				can = true
 				must = false
-			case to >= SQ9i:
+			case to >= sq9i:
 				can = true
 				must = true
 			}
@@ -336,10 +336,10 @@ var (
 		}),
 		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to <= SQ1c && to > SQ1b:
+			case to <= sq1c && to > sq1b:
 				can = true
 				must = false
-			case to <= SQ1b:
+			case to <= sq1b:
 				can = true
 				must = true
 			}
@@ -355,10 +355,10 @@ var (
 		}),
 		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to >= SQ9g && to < SQ9h:
+			case to >= sq9g && to < sq9h:
 				can = true
 				must = false
-			case to >= SQ9h:
+			case to >= sq9h:
 				can = true
 				must = true
 			}
@@ -377,7 +377,7 @@ var (
 		}),
 		Promote: func(from, to squareIndex) (can, must bool) {
 			switch {
-			case (from <= SQ1c && from > SQ1b) || (to <= SQ1c && to > SQ1b):
+			case (from <= sq1c && from > sq1b) || (to <= sq1c && to > sq1b):
 				can = true
 				must = false
 			}
@@ -396,7 +396,7 @@ var (
 		}),
 		Promote: func(from, to squareIndex) (can, must bool) {
 			switch {
-			case (from >= SQ9g && from < SQ9a) || (to >= SQ9g && to < SQ9a):
+			case (from >= sq9g && from < sq9a) || (to >= sq9g && to < sq9a):
 				can = true
 				must = false
 			}
@@ -478,8 +478,8 @@ var (
 
 // MagicEntry represents the precomputed magic information for a square.
 type magicEntry struct {
-	attacks []Bitboard // Attacks indexed by magic index
-	mask    Bitboard   // All possible attacks on a board without blockers, excluding edges
+	attacks []bitboard // Attacks indexed by magic index
+	mask    bitboard   // All possible attacks on a board without blockers, excluding edges
 	magic   uint64     // The magic number for this square
 	shift   uint       // shift value for indexing the magic attacks
 }
@@ -488,17 +488,17 @@ type magicEntry struct {
 type magicsTable [SQUARES]magicEntry
 
 // newMagicsTable initializes a MagicsTable with precomputed magic numbers.
-func newMagicsTable(magics [SQUARES]uint64, moveDirections []direction, edges Bitboard) magicsTable {
+func newMagicsTable(magics [SQUARES]uint64, moveDirections []direction, edges bitboard) magicsTable {
 	var mt magicsTable
 	maskFunc := magicGenerateAttacksMaskFuncBuilder(moveDirections, edges)
 	attacksFunc := magicGenerateAttacksWithBlockersFuncBuilder(moveDirections)
 	for sq := squareIndex(0); sq < SQUARES; sq++ {
 		mask := maskFunc(sq)
-		relevantBits := mask.PopCount()
+		relevantBits := mask.popCount()
 		occupancyVariations := uint(1) << relevantBits
 
 		me := magicEntry{
-			attacks: make([]Bitboard, occupancyVariations),
+			attacks: make([]bitboard, occupancyVariations),
 			mask:    mask,
 			magic:   magics[sq],
 			shift:   64 - relevantBits,
@@ -516,38 +516,38 @@ func newMagicsTable(magics [SQUARES]uint64, moveDirections []direction, edges Bi
 }
 
 // generateOccupancy computes an occupancy bitboard for a given magic index.
-func generateOccupancy(index uint, mask Bitboard) Bitboard {
-	occupancy := Zero
-	count := mask.PopCount()
+func generateOccupancy(index uint, mask bitboard) bitboard {
+	occupancy := bbZero
+	count := mask.popCount()
 	for i := uint(0); i < count; i++ {
-		sq := mask.Lsb()
-		mask = mask.ClearBit(squareIndex(sq))
+		sq := mask.lsb()
+		mask = mask.clear(squareIndex(sq))
 		if (index & (1 << i)) != 0 { // test if the i-th bit in the index is set
-			occupancy = occupancy.SetBit(squareIndex(sq))
+			occupancy = occupancy.set(squareIndex(sq))
 		}
 	}
 	return occupancy
 }
 
 // MagicIndex computes the magic index to be used for magic bitboard lookup.
-func magicIndex(bb Bitboard, magic uint64, shift uint) uint64 {
-	return (bb.Merge() * magic) >> shift
+func magicIndex(bb bitboard, magic uint64, shift uint) uint64 {
+	return (bb.merge() * magic) >> shift
 }
 
 // findMagic finds a suitable magic number for a square, given the mask and attack generation function.
-func findMagic(sq squareIndex, moveDirections []direction, edges Bitboard) uint64 {
+func findMagic(sq squareIndex, moveDirections []direction, edges bitboard) uint64 {
 	mask := magicGenerateAttacksMaskFuncBuilder(moveDirections, edges)(sq)
 	attacksFunc := magicGenerateAttacksWithBlockersFuncBuilder(moveDirections)
 
-	relevantBits := mask.PopCount()
+	relevantBits := mask.popCount()
 	shift := 64 - relevantBits // 64 because used to shift Magic which is a uint64
 
 	// loop over occupancy variations
 	occupancyVariations := uint(1) << relevantBits
 
-	attacks := make([]Bitboard, occupancyVariations)
-	occupancy := make([]Bitboard, occupancyVariations)
-	indexedAttacks := make([]Bitboard, occupancyVariations)
+	attacks := make([]bitboard, occupancyVariations)
+	occupancy := make([]bitboard, occupancyVariations)
+	indexedAttacks := make([]bitboard, occupancyVariations)
 	// indexedAttacksAttempt is used to keep track of test attempt counts
 	// and avoid resetting indexedAttacks which is too slow
 	indexedAttacksAttempt := make([]uint, occupancyVariations)
@@ -580,12 +580,12 @@ func findMagic(sq squareIndex, moveDirections []direction, edges Bitboard) uint6
 }
 
 // magicGenerateAttacksWithBlockersFunc is a function type to generate attacks with blockers for a square.
-type magicGenerateAttacksWithBlockersFunc func(sq squareIndex, blockers Bitboard) Bitboard
+type magicGenerateAttacksWithBlockersFunc func(sq squareIndex, blockers bitboard) bitboard
 
 // magicGenerateAttacksWithBlockersFuncBuilder creates an attack generation function for a set of directions.
 func magicGenerateAttacksWithBlockersFuncBuilder(moveDirections []direction) magicGenerateAttacksWithBlockersFunc {
-	return func(sq squareIndex, blockers Bitboard) Bitboard {
-		bb := Zero
+	return func(sq squareIndex, blockers bitboard) bitboard {
+		bb := bbZero
 		var err error
 		for _, d := range moveDirections {
 			newsq := sq
@@ -595,8 +595,8 @@ func magicGenerateAttacksWithBlockersFuncBuilder(moveDirections []direction) mag
 				if err != nil { // invalid move
 					break
 				}
-				bb = bb.SetBit(newsq)
-				if blockers.GetBit(newsq) == 1 { // arrive on a blocker
+				bb = bb.set(newsq)
+				if blockers.bit(newsq) == 1 { // arrive on a blocker
 					break
 				}
 			}
@@ -606,13 +606,13 @@ func magicGenerateAttacksWithBlockersFuncBuilder(moveDirections []direction) mag
 }
 
 // magicGenerateAttacksMaskFunc is a function type to generate masks of all possible attacks for a square.
-type magicGenerateAttacksMaskFunc func(sq squareIndex) Bitboard
+type magicGenerateAttacksMaskFunc func(sq squareIndex) bitboard
 
 // magicGenerateAttacksMaskFuncBuilder creates a mask generation function for a set of directions.
-func magicGenerateAttacksMaskFuncBuilder(moveDirections []direction, edges Bitboard) magicGenerateAttacksMaskFunc {
-	return func(sq squareIndex) Bitboard {
+func magicGenerateAttacksMaskFuncBuilder(moveDirections []direction, edges bitboard) magicGenerateAttacksMaskFunc {
+	return func(sq squareIndex) bitboard {
 		var err error
-		bb := Zero
+		bb := bbZero
 		for _, d := range moveDirections {
 			newsq := sq
 			for {
@@ -621,7 +621,7 @@ func magicGenerateAttacksMaskFuncBuilder(moveDirections []direction, edges Bitbo
 				if err != nil { // invalid move
 					break
 				}
-				bb = bb.SetBit(newsq)
+				bb = bb.set(newsq)
 			}
 		}
 		bb = bb.And(edges) // remove edges not needed for magic bitboard algorithm
@@ -663,15 +663,15 @@ func (rules slidingPieceMoveRules) generateMoves(piece Piece, gs *Position, list
 	occupied := gs.BBbyColor[Black].Or(gs.BBbyColor[White])
 
 	// iterate over each of our pieces
-	for mypieces != Zero {
-		from := squareIndex(mypieces.Lsb())
+	for mypieces != bbZero {
+		from := squareIndex(mypieces.lsb())
 		me := rules.magics[from]
 		blockers := occupied.And(me.mask)
 		index := magicIndex(blockers, me.magic, me.shift)
 		attacks := me.attacks[index]
 		// generate moves for the current piece on "from"
 		generateMoves(from, attacks, gs, rules.promote, list)
-		mypieces = mypieces.ClearBit(from)
+		mypieces = mypieces.clear(from)
 	}
 }
 
@@ -680,16 +680,16 @@ var (
 		origin.toNorth(1),
 	}
 
-	blackLanceEdges = Rank1Mask.Not()
+	blackLanceEdges = maskRank1.Not()
 
 	blackLanceMoveRules = slidingPieceMoveRules{
 		magics: newMagicsTable(blackLanceMagics, blackLanceDirections, blackLanceEdges),
 		promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to <= SQ1c && to > SQ1a:
+			case to <= sq1c && to > sq1a:
 				can = true
 				must = false
-			case to <= SQ1a:
+			case to <= sq1a:
 				can = true
 				must = true
 			}
@@ -714,16 +714,16 @@ var (
 		origin.toSouth(1),
 	}
 
-	whiteLanceEdges = Rank9Mask.Not()
+	whiteLanceEdges = maskRank9.Not()
 
 	whiteLanceMoveRules = slidingPieceMoveRules{
 		magics: newMagicsTable(whiteLanceMagics, whiteLanceDirections, whiteLanceEdges),
 		promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to >= SQ9g && to < SQ9a:
+			case to >= sq9g && to < sq9a:
 				can = true
 				must = false
-			case to >= SQ9i:
+			case to >= sq9i:
 				can = true
 				must = true
 			}
@@ -751,7 +751,7 @@ var (
 		origin.toSouth(1).toEast(1),
 	}
 
-	bishopEdges = (Rank1Mask.Or(Rank9Mask).Or(File1Mask.Or(File9Mask))).Not()
+	bishopEdges = (maskRank1.Or(maskRank9).Or(maskFile1.Or(maskFile9))).Not()
 
 	blackBishopMoveRules = slidingPieceMoveRules{
 		magics: newMagicsTable(bishopMagics, bishopDirections, bishopEdges),
@@ -795,7 +795,7 @@ var (
 		origin.toWest(1),
 	}
 
-	rookHEdges = (File1Mask.Or(File9Mask)).Not()
+	rookHEdges = (maskFile1.Or(maskFile9)).Not()
 
 	blackRookHMoveRules = slidingPieceMoveRules{
 		magics: newMagicsTable(rookHMagics, rookHDirections, rookHEdges),
@@ -839,7 +839,7 @@ var (
 		origin.toSouth(1),
 	}
 
-	rookVEdges = (Rank1Mask.Or(Rank9Mask)).Not()
+	rookVEdges = (maskRank1.Or(maskRank9)).Not()
 
 	blackRookVMoveRules = slidingPieceMoveRules{
 		magics: newMagicsTable(rookVMagics, rookVDirections, rookVEdges),

@@ -50,14 +50,14 @@ type squareIndex int
 
 // Some useful squareIndex constants
 const (
-	SQ9a squareIndex = 0
-	SQ1a squareIndex = 8
-	SQ1b squareIndex = 17
-	SQ1c squareIndex = 25
-	SQ9g squareIndex = 54
-	SQ9h squareIndex = 63
-	SQ9i squareIndex = 72
-	SQ1i squareIndex = 80
+	sq9a squareIndex = 0
+	sq1a squareIndex = 8
+	sq1b squareIndex = 17
+	sq1c squareIndex = 25
+	sq9g squareIndex = 54
+	sq9h squareIndex = 63
+	sq9i squareIndex = 72
+	sq1i squareIndex = 80
 )
 
 // newSquareIndex creates a new squareIndex from an USI coordinate string.
