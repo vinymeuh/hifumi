@@ -3,7 +3,6 @@
 package shogi
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -72,12 +71,12 @@ func (m Move) String() string {
 	flags := m.flags()
 	switch flags {
 	case moveFlagDrop:
-		return fmt.Sprintf("%s*%s", strings.ToUpper(m.piece().String()), m.to().String())
+		return strings.ToUpper(m.piece().String()) + "*" + m.to().String()
 	default:
 		if flags&moveFlagPromotion == moveFlagPromotion {
-			return fmt.Sprintf("%s%s+", m.from().String(), m.to().String())
+			return m.from().String() + m.to().String() + "+"
 		}
-		return fmt.Sprintf("%s%s", m.from().String(), m.to().String())
+		return m.from().String() + m.to().String()
 	}
 }
 

@@ -1,4 +1,5 @@
 /hifumi
+/tests_perft.test
 *.prof
 *.out
 *.html

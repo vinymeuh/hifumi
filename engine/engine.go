@@ -197,11 +197,12 @@ func goHandler(out io.Writer, args []string) {
 			result := shogi.Perft(position, depth)
 			moves := make([]string, 0, result.MovesCount)
 			for m := range result.Moves {
-				moves = append(moves, m)
+				moves = append(moves, m.String())
 			}
 			sort.Strings(moves)
 			for _, move := range moves {
-				fmt.Fprintf(out, "%s: %d\n", move, result.Moves[move])
+				m := result.FindMove(move)
+				fmt.Fprintf(out, "%s: %d\n", move, result.Moves[m])
 			}
 			fmt.Fprintf(out, "\nMoves: %d\n", result.MovesCount)
 			fmt.Fprintf(out, "Nodes searched: %d\n", result.NodesCount)

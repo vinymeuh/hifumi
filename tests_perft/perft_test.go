@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -57,10 +58,10 @@ func testDropsPromotes(t *testing.T, tests *jsonData, result *shogi.PerftResult)
 	drops := 0
 	promotions := 0
 	for m := range result.Moves {
-		if strings.Contains(m, "*") {
+		if strings.Contains(m.String(), "*") {
 			drops++
 		}
-		if strings.HasSuffix(m, "+") {
+		if strings.HasSuffix(m.String(), "+") {
 			promotions++
 		}
 	}
@@ -74,13 +75,41 @@ func testDropsPromotes(t *testing.T, tests *jsonData, result *shogi.PerftResult)
 
 func testMoveNodesCount(t *testing.T, tc *jsonDataDetail, result *shogi.PerftResult) {
 	for expectedMove, expectedNodes := range tc.Moves {
-		nodes, ok := result.Moves[expectedMove]
-		if ok {
+		move := result.FindMove(expectedMove)
+		if move == shogi.Move(0) {
+			t.Errorf("\nMissing move %s", expectedMove)
+		} else {
+			nodes := result.Moves[move]
 			if expectedNodes != nodes {
 				t.Errorf("\nNodes count mismatch for move %s: expected=%d, got=%d", expectedMove, expectedNodes, nodes)
 			}
-		} else {
-			t.Errorf("\nMissing move %s", expectedMove)
+		}
+	}
+}
+
+func BenchmarkPerft(b *testing.B) {
+	benchs := []struct { //nolint:govet
+		fileName string
+		maxDepth int
+	}{
+		{"testdata/startpos.json", 2},
+	}
+
+	for _, bench := range benchs {
+		bc := parseJsonFile(b, bench.fileName)
+		benchName := bench.fileName[:len(bench.fileName)-len(filepath.Ext(bench.fileName))]
+		for _, tc := range bc.Tests {
+			if tc.Depth > bench.maxDepth {
+				continue
+			}
+			gs, _ := shogi.NewPositionFromSfen(bc.StartPos)
+			b.Run(fmt.Sprintf("%s_depth_%d", benchName, tc.Depth), func(b *testing.B) {
+				var result *shogi.PerftResult
+				for i := 0; i < b.N; i++ {
+					result = shogi.Perft(gs, tc.Depth)
+				}
+				runtime.KeepAlive(result)
+			})
 		}
 	}
 }
@@ -99,7 +128,11 @@ type jsonDataDetail struct { //nolint:govet
 	Moves map[string]int `json:"moves"`
 }
 
-func parseJsonFile(t *testing.T, path string) *jsonData {
+type T interface {
+	Fatalf(format string, args ...any)
+}
+
+func parseJsonFile(t T, path string) *jsonData {
 	f, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("Unexpected error opening json file: %v", err)

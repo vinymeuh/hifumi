@@ -7,15 +7,24 @@ import (
 )
 
 type PerftResult struct {
-	Moves      map[string]int
+	Moves      map[Move]int
 	Duration   time.Duration
 	MovesCount int
 	NodesCount int
 }
 
+func (pr PerftResult) FindMove(str string) Move {
+	for m := range pr.Moves {
+		if m.String() == str {
+			return m
+		}
+	}
+	return Move(0)
+}
+
 func NewPerftResult() *PerftResult {
 	var result PerftResult
-	result.Moves = map[string]int{}
+	result.Moves = map[Move]int{}
 	return &result
 }
 
@@ -45,7 +54,7 @@ func perftRoot(gs *Position, depth int, result *PerftResult) {
 		gs.ApplyMove(move)
 		nodes := perftLeaf(gs, depth-1)
 		gs.UnapplyMove(move)
-		result.Moves[move.String()] = nodes
+		result.Moves[move] = nodes
 	}
 }
 
