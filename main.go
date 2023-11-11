@@ -8,8 +8,7 @@ import (
 	"github.com/vinymeuh/hifumi/engine"
 )
 
-const Version = "0.0.0"
-
 func main() {
-	engine.Run(Version, os.Stdin, os.Stdout)
+	engine.SetVersion("0.0.0")
+	engine.MainLoop(os.Stdin, os.Stdout)
 }

@@ -67,13 +67,12 @@ func TestApplyUnapplyMoveFromJson(t *testing.T) {
 			// ApplyMove
 			var appliedMoves = make([]Move, 0, len(kifu.Moves))
 			for i, m := range kifu.Moves {
-				move := NewMoveFromUsi(g, m.Move)
-				if move == Move(0) {
-					t.Fatalf("NewMoveFromUsi %03d: unexpected null move", i)
+				move, err := g.ApplyUsiMove(m.Move)
+				if err != nil {
+					t.Fatalf("ApplyUsiMove %03d: invalid move", i)
 				}
-				g.ApplyMove(move)
 				if m.Expected != g.Sfen() {
-					t.Fatalf("ApplyMove %d.%s: expected='%s', got='%s'", i+1, m.Move, m.Expected, g.Sfen())
+					t.Fatalf("ApplyUsiMove %d.%s: expected='%s', got='%s'", i+1, m.Move, m.Expected, g.Sfen())
 				}
 				appliedMoves = append(appliedMoves, move)
 			}

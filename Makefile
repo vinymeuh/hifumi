@@ -11,6 +11,11 @@ build:
 	go build .
 .PHONY: build
 
+## run: run the application
+run: build
+	@./hifumi
+.PHONY: run
+
 ## test: run all tests
 test:
 	go test ./...

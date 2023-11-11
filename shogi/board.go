@@ -4,7 +4,6 @@ package shogi
 
 import (
 	"fmt"
-	"strings"
 )
 
 const (
@@ -29,19 +28,6 @@ func NewBoard() Board {
 		NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
 		NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece,
 	}
-}
-
-// String returns the string representation of the board.
-func (b Board) String() string {
-	var sb strings.Builder
-	for i := 0; i < SQUARES; i++ {
-		if i != 0 && i%9 == 0 {
-			sb.WriteString("\n")
-		}
-		piece := b[i]
-		sb.WriteString(fmt.Sprintf(" %2s", piece))
-	}
-	return sb.String()
 }
 
 // A squareIndex represents the coordinates of a Shogiban square.

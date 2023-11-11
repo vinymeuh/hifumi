@@ -3,7 +3,6 @@
 package shogi
 
 import (
-	"regexp"
 	"strings"
 )
 
@@ -79,45 +78,3 @@ func (m Move) String() string {
 		return m.from().String() + m.to().String()
 	}
 }
-
-// NewMoveFromUsi creates a new Move from a USI move strinp.
-func NewMoveFromUsi(p *Position, s string) Move {
-	switch {
-	case regexMove.Match([]byte(s)):
-		from := newSquareIndex(s[0:2])
-		pFrom := p.Board[from]
-		if pFrom == NoPiece || pFrom.Color() != p.Side {
-			return Move(0)
-		}
-		to := newSquareIndex(s[2:4])
-		pTo := p.Board[to]
-
-		flags := moveFlagMove
-		if len(s) == 5 {
-			flags |= moveFlagPromotion
-		}
-		switch {
-		case pTo == NoPiece:
-			return newMove(flags, from, to, 0)
-		case pTo.Color() != p.Side:
-			return newMove(flags|moveFlagCapture, from, to, pTo)
-		default:
-			return Move(0)
-		}
-	case regexDrop.Match([]byte(s)):
-		var pc Piece
-		if p.Side == Black {
-			pc, _ = NewPiece(s[0:1])
-		} else {
-			pc, _ = NewPiece(strings.ToLower(s[0:1]))
-		}
-		to := newSquareIndex(s[2:4])
-		return newMove(moveFlagDrop, 0, to, pc)
-	}
-	return Move(0)
-}
-
-var (
-	regexMove = regexp.MustCompile(`^[1-9][a-i][1-9][a-i][+]?$`)
-	regexDrop = regexp.MustCompile(`^[PLNSGBR]\*[1-9][a-i]$`)
-)

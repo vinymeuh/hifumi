@@ -43,6 +43,11 @@
             "depth": 2,
             "nodes": 900,
             "moves": {}
+        },
+        {
+            "depth": 3,
+            "nodes": 25470,
+            "moves": {}
         }
     ]
 }

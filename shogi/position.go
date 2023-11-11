@@ -4,6 +4,8 @@
 // Package gamestate provides types to represent Shogi game state and methods to evolve it.
 package shogi
 
+import "fmt"
+
 // A Position represents the state of a Shogi game.
 type Position struct {
 	// Hand for each color
@@ -112,6 +114,21 @@ func (p *Position) UnapplyMove(m Move) {
 
 	p.Ply--
 	p.Side = p.Side.Opponent()
+}
+
+// ApplyUsiMove updates Position based on provided USI move string.
+// Move must be valid otherwise returns an error.
+func (p *Position) ApplyUsiMove(str string) (Move, error) {
+	var list MoveList
+	GeneratePseudoLegalMoves(p, &list)
+	for i := 0; i < list.Count; i++ {
+		m := list.Moves[i]
+		if m.String() == str {
+			p.ApplyMove(m)
+			return m, nil
+		}
+	}
+	return Move(0), fmt.Errorf("invalid move")
 }
 
 func (p *Position) setPiece(piece Piece, square squareIndex) {
