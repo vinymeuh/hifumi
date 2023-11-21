@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/vinymeuh/hifumi/shogi"
 )
@@ -25,19 +25,9 @@ var engineInfo = struct {
 }{
 	name:    "Hifumi",
 	author:  "VinyMeuh",
-	version: "undefined",
+	version: "2023.11",
 
 	options: map[string]usiOption{
-		"USI_Hash": spinOption{
-			value:    16,
-			min:      1,
-			max:      3355443,
-			callback: noopIntCallback,
-		},
-		"USI_Ponder": checkOption{
-			value:    false,
-			callback: noopBoolCallback,
-		},
 		"USI_Variant": comboOption{
 			value:    "shogi",
 			values:   []string{"shogi"},
@@ -46,14 +36,12 @@ var engineInfo = struct {
 	},
 }
 
-func SetVersion(version string) {
-	engineInfo.version = version
-}
-
 var engineStatus = struct {
-	stopThinking chan struct{}
+	stopRequested chan struct{}
+	pv            principalVariation
 }{
-	stopThinking: nil,
+	stopRequested: nil,
+	pv:            principalVariation{line: [1]shogi.Move{0}},
 }
 
 var enginePosition *shogi.Position
@@ -62,7 +50,7 @@ var enginePosition *shogi.Position
 // ============ Main Loop ============ //
 // =================================== //
 func MainLoop(in io.Reader, out io.Writer) {
-	fmt.Fprintln(out, engineInfo.name, "version", engineInfo.version)
+	fmt.Fprintln(out, engineInfo.name, engineInfo.version)
 
 	enginePosition, _ = shogi.NewPositionFromSfen(shogi.StartPos)
 
@@ -86,13 +74,13 @@ func MainLoop(in io.Reader, out io.Writer) {
 		case "position":
 			positionHandler(out, strings.Fields(text))
 		case "go":
-			if engineStatus.stopThinking == nil {
+			if engineStatus.stopRequested == nil {
 				goHandler(out, strings.Fields(text))
 			}
 		case "stop":
-			if engineStatus.stopThinking != nil {
-				close(engineStatus.stopThinking)
-				engineStatus.stopThinking = nil
+			if engineStatus.stopRequested != nil {
+				close(engineStatus.stopRequested)
+				engineStatus.stopRequested = nil
 			}
 		case "quit":
 			os.Exit(0)
@@ -118,7 +106,7 @@ func usiHandler(out io.Writer) {
 }
 
 func usinewgameHandler(_ io.Writer) {
-	// This is sent to the engine when the next search (started with position and go) will be from a diﬀerent game.
+	enginePosition, _ = shogi.NewPositionFromSfen(shogi.StartPos)
 }
 
 func isreadyHandler(out io.Writer) {
@@ -159,12 +147,12 @@ func positionHandler(out io.Writer, args []string) {
 	var movesIndex = 2 // position of 'moves' string in args. Can't be less than 2.
 	for ; movesIndex < len(args); movesIndex++ {
 		if args[movesIndex] == "moves" {
-			if movesIndex == len(args)-1 {
-				fmt.Fprintln(out, "Invalid command: position [sfen <sfenstring> | startpos ] moves <move1> ... <movei>")
-				return
-			}
 			break
 		}
+	}
+	if movesIndex == len(args)-1 {
+		fmt.Fprintln(out, "Invalid command: position [sfen <sfenstring> | startpos ] moves <move1> ... <movei>")
+		return
 	}
 
 	var pos *shogi.Position
@@ -199,36 +187,81 @@ func positionHandler(out io.Writer, args []string) {
 }
 
 func goHandler(out io.Writer, args []string) {
-	// parse args if any
-	for i := 1; i < len(args); i++ {
-		switch args[i] {
+	constraints := newSeachConstraints()
+
+	// process arguments silently ignoring all parsing errors
+	movetime := 0
+	xtime := 0 // btime/wtime
+	xinc := 0  // binc/winc
+	movestogo := 0
+	for i, token := range args {
+		if token == "infinite" {
+			constraints.infinite = true
+			break
+		}
+		if token == "ponder" { // not implemented
+			continue
+		}
+		if i+1 >= len(args) {
+			continue
+		}
+		i++
+		switch token {
+		case "btime":
+			if enginePosition.Side == shogi.Black {
+				xtime, _ = strconv.Atoi(args[i])
+			}
+		case "binc":
+			if enginePosition.Side == shogi.Black {
+				xinc, _ = strconv.Atoi(args[i])
+			}
+		case "wtime":
+			if enginePosition.Side == shogi.White {
+				xtime, _ = strconv.Atoi(args[i])
+			}
+		case "winc":
+			if enginePosition.Side == shogi.White {
+				xinc, _ = strconv.Atoi(args[i])
+			}
+		case "movetime":
+			movetime, _ = strconv.Atoi(args[i])
+		case "byoyomi":
+			xinc, _ = strconv.Atoi(args[i])
+		case "movestogo":
+			movestogo, _ = strconv.Atoi(args[i])
+		case "nodes":
+			n, _ := strconv.ParseUint(args[i], 10, 0)
+			constraints.nodes = uint(n)
+		case "depth":
+			n, _ := strconv.ParseUint(args[i], 10, 0)
+			constraints.depth = uint(n)
 		case "perft":
-			i++
-			if i >= len(args) {
-				fmt.Fprintln(out, "Invalid command: go perft <depth>")
-				return
-			}
-			depth, err := strconv.Atoi(args[i])
-			if err != nil {
-				fmt.Fprintln(out, "Invalid command: go perft <depth>")
-				return
-			}
-			result := shogi.Perft(enginePosition, depth)
-			moves := make([]string, 0, result.MovesCount)
-			for m := range result.Moves {
-				moves = append(moves, m.String())
-			}
-			sort.Strings(moves)
-			for _, move := range moves {
-				m := result.FindMove(move)
-				fmt.Fprintf(out, "%s: %d\n", move, result.Moves[m])
-			}
-			fmt.Fprintf(out, "\nMoves: %d\n", result.MovesCount)
-			fmt.Fprintf(out, "Nodes searched: %d\n", result.NodesCount)
-			fmt.Fprintf(out, "Duration: %s\n", result.Duration)
+			depth, _ := strconv.Atoi(args[i])
+			perft(out, depth)
 			return
 		}
 	}
+
+	// Compute time constraint
+	if movetime > 0 {
+		constraints.duration = time.Duration(movetime) * time.Millisecond
+	} else {
+		if movestogo > 0 {
+			constraints.duration = time.Duration(xtime/movestogo) * time.Millisecond
+		} else {
+			constraints.duration = time.Duration(xtime+xinc) * time.Millisecond
+		}
+	}
+	if constraints.depth == 0 && constraints.duration == 0 {
+		constraints.infinite = true
+	} else if constraints.infinite == true {
+		constraints.depth = 0
+		constraints.duration = 0
+	}
+
+	// fmt.Fprintf(out, "info constraints %+v\n", constraints)
+	engineStatus.stopRequested = make(chan struct{})
+	go think(out, constraints)
 }
 
 func displayHandler(out io.Writer) {

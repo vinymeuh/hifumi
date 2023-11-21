@@ -9,6 +9,5 @@ import (
 )
 
 func main() {
-	engine.SetVersion("0.0.0")
 	engine.MainLoop(os.Stdin, os.Stdout)
 }

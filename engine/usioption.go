@@ -4,7 +4,6 @@ package engine
 
 import (
 	"fmt"
-	"strconv"
 )
 
 type usiOption interface {
@@ -12,26 +11,26 @@ type usiOption interface {
 	set(value string) error
 }
 
-type checkOption struct {
-	callback func(value bool)
-	value    bool
-}
+// type checkOption struct {
+// 	callback func(value bool)
+// 	value    bool
+// }
 
-func (co checkOption) String() string {
-	return fmt.Sprintf("type check default %s", strconv.FormatBool(co.value))
-}
+// func (co checkOption) String() string {
+// 	return fmt.Sprintf("type check default %s", strconv.FormatBool(co.value))
+// }
 
-func (co checkOption) set(value string) error {
-	switch value {
-	case "true":
-		co.callback(true)
-	case "false":
-		co.callback(false)
-	default:
-		return fmt.Errorf("valid values are [true, false]")
-	}
-	return nil
-}
+// func (co checkOption) set(value string) error {
+// 	switch value {
+// 	case "true":
+// 		co.callback(true)
+// 	case "false":
+// 		co.callback(false)
+// 	default:
+// 		return fmt.Errorf("valid values are [true, false]")
+// 	}
+// 	return nil
+// }
 
 type comboOption struct {
 	callback func(value string)
@@ -57,35 +56,35 @@ func (co comboOption) String() string {
 	return s
 }
 
-type spinOption struct {
-	callback func(value int)
-	value    int
-	min      int
-	max      int
-}
+// type spinOption struct {
+// 	callback func(value int)
+// 	value    int
+// 	min      int
+// 	max      int
+// }
 
-func (so spinOption) String() string {
-	return fmt.Sprintf("type spin default %d min %d max %d", so.value, so.min, so.max)
-}
+// func (so spinOption) String() string {
+// 	return fmt.Sprintf("type spin default %d min %d max %d", so.value, so.min, so.max)
+// }
 
-func (so spinOption) set(value string) error {
-	ivalue, err := strconv.Atoi(value)
+// func (so spinOption) set(value string) error {
+// 	ivalue, err := strconv.Atoi(value)
 
-	if err != nil {
-		return fmt.Errorf("not a number")
-	}
+// 	if err != nil {
+// 		return fmt.Errorf("not a number")
+// 	}
 
-	if ivalue < so.min || ivalue > so.max {
-		return fmt.Errorf("out of range [%d, %d]", so.min, so.max)
-	}
+// 	if ivalue < so.min || ivalue > so.max {
+// 		return fmt.Errorf("out of range [%d, %d]", so.min, so.max)
+// 	}
 
-	so.callback(ivalue)
-	return nil
-}
+// 	so.callback(ivalue)
+// 	return nil
+// }
 
 // Noop Callbacks
-func noopBoolCallback(_ bool) {}
+// func noopBoolCallback(_ bool) {}
 
-func noopIntCallback(_ int) {}
+// func noopIntCallback(_ int) {}
 
 func noopStringCallback(_ string) {}
