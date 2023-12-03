@@ -25,7 +25,7 @@ var engineInfo = struct {
 }{
 	name:    "Hifumi",
 	author:  "VinyMeuh",
-	version: "2023.11",
+	version: "2023.12",
 
 	options: map[string]usiOption{
 		"USI_Variant": comboOption{
@@ -300,7 +300,7 @@ func displayHandler(out io.Writer) {
 
 	// other informations
 	fmt.Fprintf(&sb, "\nSfen: %s\n", enginePosition.Sfen())
-	checkers := shogi.Checkers(enginePosition)
+	checkers := shogi.Checkers(enginePosition, enginePosition.Side)
 	fmt.Fprintf(&sb, "Checkers: %s\n", checkers)
 
 	fmt.Fprintf(out, "\n%s\n", sb.String())

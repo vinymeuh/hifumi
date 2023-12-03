@@ -3,7 +3,7 @@
 package shogi
 
 func Attackers(gs *Position, sq squareIndex) []squareIndex {
-	myside := gs.Side
+	myside := gs.Board[sq].Color()
 	gs.Side = myside.Opponent()
 
 	var moves MoveList
@@ -19,9 +19,9 @@ func Attackers(gs *Position, sq squareIndex) []squareIndex {
 	return attackers
 }
 
-func Checkers(gs *Position) []squareIndex {
+func Checkers(gs *Position, side Color) []squareIndex {
 	var myking squareIndex
-	if gs.Side == Black {
+	if side == Black {
 		myking = squareIndex(gs.BBbyPiece[BlackKing].lsb())
 	} else {
 		myking = squareIndex(gs.BBbyPiece[WhiteKing].lsb())

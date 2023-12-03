@@ -85,7 +85,12 @@ loop:
 	}
 	// end loop
 
-	fmt.Fprintf(out, "bestmove %s\n", engineStatus.pv.line[0])
+	move := engineStatus.pv.line[0]
+	if move == 0 {
+		fmt.Fprintln(out, "bestmove resign") // only valid for Shogidokoro ?
+	} else {
+		fmt.Fprintf(out, "bestmove %s\n", engineStatus.pv.line[0])
+	}
 
 	if engineStatus.stopRequested != nil {
 		close(engineStatus.stopRequested)
@@ -96,14 +101,35 @@ loop:
 func iFeelLucky(ctx context.Context, constraints searchConstraints, done chan struct{}, msgout chan string) {
 	var moves shogi.MoveList
 	shogi.GeneratePseudoLegalMoves(enginePosition, &moves)
-	n := rand.Intn(moves.Count)
-	engineStatus.pv.line[0] = moves.Moves[n]
+	myside := enginePosition.Side
 
+	var m shogi.Move
+	for {
+		n := rand.Intn(moves.Count)
+		m = moves.Moves[n]
+		enginePosition.ApplyMove(m)
+		checkers := shogi.Checkers(enginePosition, myside)
+		enginePosition.UnapplyMove(m)
+		if len(checkers) > 0 {
+			moves.Moves[n] = moves.Moves[moves.Count-1]
+			moves.Count--
+			if moves.Count == 0 {
+				m = shogi.Move(0)
+				break
+			}
+		} else {
+			break
+		}
+	}
+	engineStatus.pv.line[0] = m
+
+	// fake thinking
 	depth := 0
 	for {
 		time.Sleep(1000 * time.Millisecond)
 		depth++
 		msgout <- fmt.Sprintf("info depth %d pv %s", depth, engineStatus.pv.line[0])
+
 		if depth >= int(constraints.depth) && constraints.infinite == false {
 			close(done)
 			return

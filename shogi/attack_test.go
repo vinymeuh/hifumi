@@ -29,7 +29,7 @@ func TestCheckers(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			checkers := Checkers(g)
+			checkers := Checkers(g, g.Side)
 			if len(checkers) != len(tc.expected) {
 				t.Errorf("\nCheckers count mismatch: expected=%d, got=%d", len(tc.expected), len(checkers))
 				fmt.Println(checkers)
