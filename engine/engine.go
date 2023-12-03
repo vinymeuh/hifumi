@@ -300,6 +300,8 @@ func displayHandler(out io.Writer) {
 
 	// other informations
 	fmt.Fprintf(&sb, "\nSfen: %s\n", enginePosition.Sfen())
+	checkers := shogi.Checkers(enginePosition)
+	fmt.Fprintf(&sb, "Checkers: %s\n", checkers)
 
 	fmt.Fprintf(out, "\n%s\n", sb.String())
 }
