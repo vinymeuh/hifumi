@@ -299,10 +299,10 @@ var (
 		}),
 		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to <= sq1c && to > sq1a:
+			case to.Rank() <= 3 && to.Rank() > 1:
 				can = true
 				must = false
-			case to <= sq1a:
+			case to.Rank() == 1:
 				can = true
 				must = true
 			}
@@ -317,10 +317,10 @@ var (
 		}),
 		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to >= sq9g && to < sq9a:
+			case to.Rank() >= 7 && to.Rank() < 9:
 				can = true
 				must = false
-			case to >= sq9i:
+			case to.Rank() == 9:
 				can = true
 				must = true
 			}
@@ -336,10 +336,10 @@ var (
 		}),
 		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to <= sq1c && to > sq1b:
+			case to.Rank() == 3:
 				can = true
 				must = false
-			case to <= sq1b:
+			case to.Rank() <= 2:
 				can = true
 				must = true
 			}
@@ -355,10 +355,10 @@ var (
 		}),
 		Promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to >= sq9g && to < sq9h:
+			case to.Rank() == 7:
 				can = true
 				must = false
-			case to >= sq9h:
+			case to.Rank() >= 8:
 				can = true
 				must = true
 			}
@@ -377,7 +377,7 @@ var (
 		}),
 		Promote: func(from, to squareIndex) (can, must bool) {
 			switch {
-			case (from <= sq1c && from > sq1b) || (to <= sq1c && to > sq1b):
+			case (from.Rank() <= 3) || (to.Rank() <= 3):
 				can = true
 				must = false
 			}
@@ -396,7 +396,7 @@ var (
 		}),
 		Promote: func(from, to squareIndex) (can, must bool) {
 			switch {
-			case (from >= sq9g && from < sq9a) || (to >= sq9g && to < sq9a):
+			case (from.Rank() >= 7) || (to.Rank() >= 7):
 				can = true
 				must = false
 			}
@@ -686,10 +686,10 @@ var (
 		magics: newMagicsTable(blackLanceMagics, blackLanceDirections, blackLanceEdges),
 		promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to <= sq1c && to > sq1a:
+			case to.Rank() <= 3 && to.Rank() > 1:
 				can = true
 				must = false
-			case to <= sq1a:
+			case to.Rank() == 1:
 				can = true
 				must = true
 			}
@@ -720,10 +720,10 @@ var (
 		magics: newMagicsTable(whiteLanceMagics, whiteLanceDirections, whiteLanceEdges),
 		promote: func(_, to squareIndex) (can, must bool) {
 			switch {
-			case to >= sq9g && to < sq9a:
+			case to.Rank() >= 7 && to.Rank() < 9:
 				can = true
 				must = false
-			case to >= sq9i:
+			case to.Rank() == 9:
 				can = true
 				must = true
 			}
