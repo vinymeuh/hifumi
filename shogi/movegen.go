@@ -5,7 +5,7 @@ package shogi
 import "math/rand"
 
 // maxMoves is the maximum number of moves we expect to generate from a given shogi position.
-const maxMoves = 256
+const maxMoves = 512
 
 // MoveList is a list of Moves with a fixed maximum size.
 type MoveList struct {
