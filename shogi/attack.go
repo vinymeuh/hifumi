@@ -8,11 +8,17 @@ func Attackers(gs *Position, sq squareIndex) []squareIndex {
 
 	var moves MoveList
 	GeneratePseudoLegalMoves(gs, &moves)
-	attackers := make([]squareIndex, 0, moves.Count)
+	attackersMap := make(map[squareIndex]struct{}, moves.Count)
+
 	for i := 0; i < moves.Count; i++ {
-		if moves.Moves[i].to() == sq && moves.Moves[i].flags()&moveFlagPromotion == 0 { // remouve promotion to avoid double count
-			attackers = append(attackers, moves.Moves[i].from())
+		if moves.Moves[i].to() == sq {
+			attackersMap[moves.Moves[i].from()] = struct{}{}
 		}
+	}
+
+	attackers := make([]squareIndex, 0, moves.Count)
+	for k := range attackersMap {
+		attackers = append(attackers, k)
 	}
 
 	gs.Side = myside
