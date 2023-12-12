@@ -662,6 +662,11 @@ func (rules slidingPieceMoveRules) generateMoves(piece Piece, gs *Position, list
 	mypieces := gs.BBbyPiece[piece]
 	occupied := gs.BBbyColor[Black].Or(gs.BBbyColor[White])
 
+	var promoteFn = rules.promote
+	if piece == BlackPromotedBishop || piece == WhitePromotedBishop || piece == BlackPromotedRook || piece == WhitePromotedRook {
+		promoteFn = func(_, _ squareIndex) (can, must bool) { return }
+	}
+
 	// iterate over each of our pieces
 	for mypieces != bbZero {
 		from := squareIndex(mypieces.lsb())
@@ -670,7 +675,7 @@ func (rules slidingPieceMoveRules) generateMoves(piece Piece, gs *Position, list
 		index := magicIndex(blockers, me.magic, me.shift)
 		attacks := me.attacks[index]
 		// generate moves for the current piece on "from"
-		generateMoves(from, attacks, gs, rules.promote, list)
+		generateMoves(from, attacks, gs, promoteFn, list)
 		mypieces = mypieces.clear(from)
 	}
 }
