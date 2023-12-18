@@ -195,53 +195,39 @@ func WhitePromotedRookMoves(gs *Position, list *MoveList) {
 // promoteFunc is a function type that checks promotion rules for moves.
 type promoteFunc func(from, to squareIndex) (can, must bool)
 
-func generateMoves(from squareIndex, attacks bitboard, gs *Position, promote promoteFunc, list *MoveList) {
-	mycolor := gs.Side
-	myopponent := mycolor.Opponent()
+func generateMoves(from squareIndex, attacks bitboard, pos *Position, promote promoteFunc, list *MoveList) {
+	me := pos.Side
+	opponent := me.Opponent()
 
 	// generate moves for the current piece on "from"
 	for attacks != bbZero {
 		to := squareIndex(attacks.lsb())
 		canPromote, mustPromote := promote(from, to)
 
+		var flags uint
+		var captured Piece
 		switch {
-		case gs.BBbyColor[myopponent].bit(to) == 1: // capture
-			captured := gs.Board[to]
-			if canPromote {
-				list.Push(newMove(
-					moveFlagMove|moveFlagPromotion|moveFlagCapture,
-					from,
-					to,
-					captured,
-				))
-			}
-			if !mustPromote {
-				list.Push(newMove(
-					moveFlagMove|moveFlagCapture,
-					from,
-					to,
-					captured,
-				))
-			}
-
-		case gs.BBbyColor[mycolor].bit(to) == 0: // empty destination
-			if canPromote {
-				list.Push(newMove(
-					moveFlagMove|moveFlagPromotion,
-					from,
-					to,
-					NoPiece,
-				))
-			}
-			if !mustPromote {
-				list.Push(newMove(
-					moveFlagMove,
-					from,
-					to,
-					NoPiece,
-				))
-			}
+		case pos.BBbyColor[opponent].bit(to) == 1: // capture
+			flags = moveFlagMove | moveFlagCapture
+			captured = pos.Board[to]
+		case pos.BBbyColor[me].bit(to) == 0: // empty destination
+			flags = moveFlagMove
+			captured = NoPiece
+		default:
+			attacks = attacks.clear(to)
+			continue
 		}
+
+		if !mustPromote {
+			m := newMove(flags, from, to, captured)
+			list.Push(m)
+		}
+
+		if canPromote {
+			m := newMove(flags|moveFlagPromotion, from, to, captured)
+			list.Push(m)
+		}
+
 		attacks = attacks.clear(to)
 	}
 }
