@@ -3,11 +3,13 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 name: Release
 
 jobs:
   create_draft_release:
+    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -16,25 +18,37 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          name: ${{ github.ref_name }} 
           tag: ${{ github.ref_name }}
           version: ${{ github.ref_name }}
 
-  # release:
-  #   strategy:
-  #     matrix:
-  #       include:
-  #         - os: ubuntu-latest
-  #           artifact_file: hifumi-linux-amd64.tgz
-  #   runs-on: ${{ matrix.os }}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #     - name: Setup Go
-  #       uses: actions/setup-go@v4
-  #       with:
-  #         go-version-file: './go.mod'
-  #     - name: Build release
-  #       run: |
-  #         go build -o hifumi cmd/hifumi/main.go
+  release:
+    needs: create_draft_release
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: hifumi-linux-amd64.tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: './go.mod'
+      - name: Build binary 
+        run: |
+          go build -o hifumi cmd/hifumi/main.go
+      - name: Create artifact
+        run: |
+          tar czf ${{ matrix.artifact }} hifumi 
+      - name: Upload artifact
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} ${{ matrix.artifact }} --clobber
