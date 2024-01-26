@@ -1,3 +1,5 @@
 /hifumi
-*.prof
-coverage.out
+/tests_perft.test
+*.pprof
+*.out
+*.html

@@ -5,52 +5,82 @@ package engine
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/vinymeuh/hifumi/shogi"
+	"github.com/vinymeuh/hifumi/shogi/movegen"
 )
 
-var info = struct {
-	options map[string]usiOption
-	name    string
-	author  string
-	version string
-}{
-	name:    "Hifumi",
-	author:  "VinyMeuh",
-	version: "undefined",
+const (
+	EngineName    = "Hifumi"
+	EngineVersion = "0.0"
+	EngineAuthor  = "VinyMeuh"
 
-	options: map[string]usiOption{
-		"USI_Hash": spinOption{
-			value:    16,
-			min:      1,
-			max:      3355443,
-			callback: noopIntCallback,
-		},
-		"USI_Ponder": checkOption{
-			value:    false,
-			callback: noopBoolCallback,
-		},
+	EngineBanner = `
+██   ██ ██ ███████ ██    ██ ███    ███ ██ 
+██   ██ ██ ██      ██    ██ ████  ████ ██ 
+███████ ██ █████   ██    ██ ██ ████ ██ ██ 
+██   ██ ██ ██      ██    ██ ██  ██  ██ ██ 
+██   ██ ██ ██       ██████  ██      ██ ██ 
+
+`
+
+	EngineHelp = `
+Principal Commands:
+ position       Set up the position as described by SFEN and optional moves
+ go             Start searching from current position
+ stop           Stop searching as soon as possible
+ perft          Run perft test up to depth
+ divide         Run divide perft test up to depth
+ quit           Quit the program
+
+For example:
+  position startpos moves 9g9f
+  go depth 5
+
+Use "d" to display current state of the game.
+
+`
+)
+
+// ==================================== //
+// ===== engineX global variables ===== //
+// ==================================== //
+var (
+	engineOptions = map[string]usiOption{
 		"USI_Variant": comboOption{
 			value:    "shogi",
 			values:   []string{"shogi"},
 			callback: noopStringCallback,
 		},
-	},
-}
+	}
 
-var position *shogi.Position
+	engineStatus = struct {
+		stopRequested chan struct{}
+		pv            principalVariation
+	}{
+		stopRequested: nil,
+		pv:            principalVariation{line: [1]movegen.Move{0}},
+	}
 
-// Main Loop
-func Run(version string, in io.Reader, out io.Writer) {
-	info.version = version
-	fmt.Fprintln(out, info.name, "version", info.version)
+	enginePosition *shogi.Position
+)
 
-	position, _ = shogi.NewPositionFromSfen(shogi.StartPos)
+// ================================== //
+// ============ Usi Loop ============ //
+// ================================== //
+func UsiLoop() {
+	fmt.Print(EngineBanner)
+	fmt.Println("Version:", EngineVersion)
+	fmt.Print(EngineHelp)
 
-	reader := bufio.NewScanner(in)
+	enginePosition, _ = shogi.NewPositionFromSfen(shogi.StartPos)
+
+	reader := bufio.NewScanner(os.Stdin)
 	for reader.Scan() {
 		text := reader.Text()
 		if text == "" {
@@ -60,70 +90,85 @@ func Run(version string, in io.Reader, out io.Writer) {
 		cmd := strings.Fields(text)[0]
 		switch cmd {
 		case "usi":
-			usiHandler(out)
+			usiHandler()
 		case "usinewgame":
-			usinewgameHandler(out)
+			usinewgameHandler()
 		case "isready":
-			isreadyHandler(out)
+			isreadyHandler()
 		case "setoption":
-			setoptionHandler(out, strings.Fields(text))
+			setoptionHandler(strings.Fields(text))
 		case "position":
-			positionHandler(out, strings.Fields(text))
+			positionHandler(strings.Fields(text))
+		case "go":
+			if engineStatus.stopRequested == nil {
+				goHandler(strings.Fields(text))
+			}
+		case "stop":
+			if engineStatus.stopRequested != nil {
+				close(engineStatus.stopRequested)
+				engineStatus.stopRequested = nil
+			}
 		case "quit":
-			os.Exit(0)
+			return
 		// Non USI commands
-		case "show":
-			showHandler(out, strings.Fields(text))
+		case "perft":
+			perftHandler(strings.Fields(text), false)
+		case "divide":
+			perftHandler(strings.Fields(text), true)
+		case "d":
+			displayHandler()
 		default:
-			fmt.Fprintf(out, "Unknown command: %s\n", text)
+			fmt.Printf("Unknown command: %s\n", text)
 		}
 	}
 }
 
-func usiHandler(out io.Writer) {
-	fmt.Fprintln(out, "id name", info.name, info.version)
-	fmt.Fprintln(out, "id author", info.author)
-	for name, option := range info.options {
-		fmt.Fprintln(out, "option name", name, option)
+// =================================== //
+// ======== Command handlers ========= //
+// =================================== //
+func usiHandler() {
+	fmt.Printf("id name %s v%s\nid author %s\n", EngineName, EngineVersion, EngineAuthor)
+	for name, option := range engineOptions {
+		fmt.Println("option name", name, option)
 	}
-	fmt.Fprintln(out, "usiok")
+	fmt.Println("usiok")
 }
 
-func usinewgameHandler(_ io.Writer) {
-	// what i'm suppose to do here ?
+func usinewgameHandler() {
+	enginePosition, _ = shogi.NewPositionFromSfen(shogi.StartPos)
 }
 
-func isreadyHandler(out io.Writer) {
-	fmt.Fprintln(out, "readyok")
+func isreadyHandler() {
+	fmt.Println("readyok")
 }
 
-func setoptionHandler(out io.Writer, args []string) {
+func setoptionHandler(args []string) {
 	switch {
 	case len(args) == 3 && args[1] == "name":
 		optionName := args[2]
-		if option, ok := info.options[optionName]; ok {
+		if option, ok := engineOptions[optionName]; ok {
 			option.set("")
 		} else {
-			fmt.Fprintln(out, "No such option:", optionName)
+			fmt.Println("No such option:", optionName)
 		}
 	case len(args) == 5 && args[1] == "name" && args[3] == "value":
 		optionName := args[2]
 		optionValue := args[4]
-		if option, ok := info.options[optionName]; ok {
+		if option, ok := engineOptions[optionName]; ok {
 			if err := option.set(optionValue); err != nil {
-				fmt.Fprintln(out, "Invalid value:", err)
+				fmt.Println("Invalid value:", err)
 			}
 		} else {
-			fmt.Fprintln(out, "No such option:", optionName)
+			fmt.Println("No such option:", optionName)
 		}
 	default:
-		fmt.Fprintln(out, "Invalid command: setoption name <id> [value <val>]")
+		fmt.Println("Invalid command: setoption name <id> [value <val>]")
 	}
 }
 
-func positionHandler(out io.Writer, args []string) {
+func positionHandler(args []string) {
 	if len(args) < 2 || (args[1] != "sfen" && args[1] != "startpos") {
-		fmt.Fprintln(out, "Invalid command: position [sfen <sfenstring> | startpos ] moves <move1> ... <movei>")
+		fmt.Println("Invalid command: position [sfen <sfenstring> | startpos ] moves <move1> ... <movei>")
 		return
 	}
 
@@ -131,12 +176,12 @@ func positionHandler(out io.Writer, args []string) {
 	var movesIndex = 2 // position of 'moves' string in args. Can't be less than 2.
 	for ; movesIndex < len(args); movesIndex++ {
 		if args[movesIndex] == "moves" {
-			if movesIndex == len(args)-1 {
-				fmt.Fprintln(out, "Invalid command: position [sfen <sfenstring> | startpos ] moves <move1> ... <movei>")
-				return
-			}
 			break
 		}
+	}
+	if movesIndex == len(args)-1 {
+		fmt.Println("Invalid command: position [sfen <sfenstring> | startpos ] moves <move1> ... <movei>")
+		return
 	}
 
 	var pos *shogi.Position
@@ -151,25 +196,175 @@ func positionHandler(out io.Writer, args []string) {
 		pos, err = shogi.NewPositionFromSfen(shogi.StartPos)
 	}
 	if err != nil {
-		fmt.Fprintln(out, err)
+		fmt.Println(err)
 		return
 	}
 
 	// applyMoves
-	// TODO: need move from usi string
+	if movesIndex < len(args) {
+		for _, str := range args[movesIndex+1:] {
+			_, err := applyUsiMove(pos, str)
+			if err != nil {
+				fmt.Println("Invalid move: ", str)
+				return
+			}
+		}
+	}
 
 	// switch to new position
-	position = pos
+	enginePosition = pos
 }
 
-func showHandler(out io.Writer, args []string) {
-	if len(args) != 2 || args[1] != "sfen" {
-		fmt.Fprintln(out, "Invalid command: show sfen")
-		return
+func goHandler(args []string) {
+	constraints := newSeachConstraints()
+
+	// process arguments silently ignoring all parsing errors
+	movetime := 0
+	xtime := 0 // btime/wtime
+	xinc := 0  // binc/winc
+	movestogo := 0
+	for i, token := range args {
+		if token == "infinite" {
+			constraints.infinite = true
+			break
+		}
+		if token == "ponder" { // not implemented
+			continue
+		}
+		if i+1 >= len(args) {
+			continue
+		}
+		i++
+		switch token {
+		case "btime":
+			if enginePosition.Side == shogi.Black {
+				xtime, _ = strconv.Atoi(args[i])
+			}
+		case "binc":
+			if enginePosition.Side == shogi.Black {
+				xinc, _ = strconv.Atoi(args[i])
+			}
+		case "wtime":
+			if enginePosition.Side == shogi.White {
+				xtime, _ = strconv.Atoi(args[i])
+			}
+		case "winc":
+			if enginePosition.Side == shogi.White {
+				xinc, _ = strconv.Atoi(args[i])
+			}
+		case "movetime":
+			movetime, _ = strconv.Atoi(args[i])
+		case "byoyomi":
+			xinc, _ = strconv.Atoi(args[i])
+		case "movestogo":
+			movestogo, _ = strconv.Atoi(args[i])
+		case "nodes":
+			n, _ := strconv.ParseUint(args[i], 10, 0)
+			constraints.nodes = uint(n)
+		case "depth":
+			n, _ := strconv.ParseUint(args[i], 10, 0)
+			constraints.depth = uint(n)
+		}
 	}
 
-	switch args[1] {
-	case "sfen":
-		fmt.Fprintln(out, position.Sfen())
+	// Compute time constraint
+	if movetime > 0 {
+		constraints.duration = time.Duration(movetime) * time.Millisecond
+	} else {
+		if movestogo > 0 {
+			constraints.duration = time.Duration(xtime/movestogo) * time.Millisecond
+		} else {
+			constraints.duration = time.Duration(xtime+xinc) * time.Millisecond
+		}
 	}
+	if constraints.depth == 0 && constraints.duration == 0 {
+		constraints.infinite = true
+	} else if constraints.infinite == true {
+		constraints.depth = 0
+		constraints.duration = 0
+	}
+
+	engineStatus.stopRequested = make(chan struct{})
+	go think(constraints)
+}
+
+func perftHandler(args []string, divide bool) {
+	depth, _ := strconv.Atoi(args[1])
+
+	result := Perft(enginePosition, depth)
+	moves := make([]string, 0, result.MovesCount)
+	for m := range result.Moves {
+		moves = append(moves, m.String())
+	}
+
+	if divide {
+		fmt.Println()
+		sort.Strings(moves)
+		for _, move := range moves {
+			m := result.FindMove(move)
+			fmt.Printf("%s: %d\n", move, result.Moves[m])
+		}
+	}
+
+	fmt.Printf("\nMoves           : %d\n", result.MovesCount)
+	fmt.Printf("Nodes searched  : %d\n", result.NodesCount)
+	fmt.Printf("Duration        : %.3fs\n", result.Duration.Seconds())
+	fmt.Printf("NPS             : %.0f\n\n", float64(result.NodesCount)/result.Duration.Seconds())
+}
+
+func displayHandler() {
+	var sb strings.Builder
+	const hLine = " +---+---+---+---+---+---+---+---+---+"
+
+	// board
+	fmt.Fprintf(&sb, "   9   8   7   6   5   4   3   2   1\n%s\n", hLine)
+	for rank := 0; rank < shogi.RANKS; rank++ {
+		fmt.Fprintf(&sb, " |")
+		for file := 0; file < shogi.FILES; file++ {
+			fmt.Fprintf(&sb, "%2s |", enginePosition.Board[9*rank+file])
+		}
+		fmt.Fprintf(&sb, "%c", 'a'+rank)
+		if rank == 0 {
+			if enginePosition.Side == shogi.White {
+				sb.WriteString(" * [")
+			} else {
+				sb.WriteString("   [")
+			}
+			enginePosition.Hands[shogi.White].SfenString(&sb)
+			sb.WriteString("]")
+		}
+		if rank == shogi.RANKS-1 {
+			if enginePosition.Side == shogi.Black {
+				sb.WriteString(" * [")
+			} else {
+				sb.WriteString("   [")
+			}
+			enginePosition.Hands[shogi.Black].SfenString(&sb)
+			sb.WriteString("]")
+		}
+
+		fmt.Fprintf(&sb, "\n%s\n", hLine)
+	}
+
+	// other informations
+	fmt.Fprintf(&sb, "\nSfen: %s\n", enginePosition.Sfen())
+	checkers := movegen.Checkers(enginePosition, enginePosition.Side)
+	fmt.Fprintf(&sb, "Checkers: %s\n", checkers)
+
+	fmt.Printf("\n%s\n", sb.String())
+}
+
+// applyUsiMove updates Position based on provided USI move string.
+// Move must be valid otherwise returns an error.
+func applyUsiMove(pos *shogi.Position, str string) (movegen.Move, error) {
+	var list movegen.MoveList
+	movegen.GenerateAllMoves(pos, &list)
+	for i := 0; i < list.Count; i++ {
+		m := list.Moves[i]
+		if m.String() == str {
+			movegen.DoMove(pos, m)
+			return m, nil
+		}
+	}
+	return movegen.Move(0), fmt.Errorf("invalid move")
 }

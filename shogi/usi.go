@@ -12,7 +12,7 @@ import (
 // StartPos is a SFEN string corresponding to the default Shogi starting position.
 const StartPos = "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1"
 
-// NewFromSfen creates a new Gamestate from a SFEN string, returns nil if input is not valid.
+// NewPositionFromSfen creates a new Position from a SFEN string, returns nil if input is not valid.
 func NewPositionFromSfen(sfen string) (*Position, error) {
 	fields := strings.Fields(sfen)
 	if len(fields) < 3 || len(fields) > 4 {
@@ -20,7 +20,7 @@ func NewPositionFromSfen(sfen string) (*Position, error) {
 	}
 
 	// board state
-	g := NewPosition()
+	g := newPosition()
 	if err := g.sfenParseBoard(fields[0]); err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func NewPositionFromSfen(sfen string) (*Position, error) {
 	return g, nil
 }
 
-// Sfen returns th SFEN string representation of a Gamestate.
+// Sfen returns th SFEN string representation of a Position.
 func (p Position) Sfen() string {
 	var sb strings.Builder
 
@@ -129,7 +129,7 @@ func (p *Position) sfenParseBoard(str string) error {
 			if err != nil {
 				return fmt.Errorf("SFEN invalid character in board")
 			}
-			p.setPiece(k, Square(sq))
+			p.SetPiece(k, uint8(sq))
 		}
 	}
 	return nil

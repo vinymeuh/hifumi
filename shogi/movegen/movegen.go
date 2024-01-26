@@ -3,19 +3,22 @@
 package movegen
 
 import (
+	"fmt"
+
 	"github.com/vinymeuh/hifumi/shogi"
+	"github.com/vinymeuh/hifumi/shogi/bitboard"
 )
 
-// maxMoves is the maximum number of moves we expect to generate from a given shogi.
-const maxMoves = 256
+// maxMoves is the maximum number of moves we expect to generate from a given shogi position.
+const maxMoves = 512
 
 // MoveList is a list of Moves with a fixed maximum size.
 type MoveList struct {
-	Moves [maxMoves]shogi.Move // Holds the generated moves
-	Count int                  // The current count of moves in the list
+	Moves [maxMoves]Move // Holds the generated moves
+	Count int            // The current count of moves in the list
 }
 
-func (ml *MoveList) add(move shogi.Move) {
+func (ml *MoveList) Push(move Move) {
 	ml.Moves[ml.Count] = move
 	ml.Count++
 	if ml.Count == maxMoves {
@@ -23,120 +26,204 @@ func (ml *MoveList) add(move shogi.Move) {
 	}
 }
 
-// GeneratePseudoLegalMoves generates pseudo-legal moves for the given game state and adds them to the move list.
-func GeneratePseudoLegalMoves(gs *shogi.Position, list *MoveList) {
-	if gs.Side == shogi.Black {
-		BlackPawnMoveRules.generateMoves(shogi.BlackPawn, gs, list)
-		BlackLanceMoveRules.generateMoves(shogi.BlackLance, gs, list)
-		BlackKnightMoveRules.generateMoves(shogi.BlackKnight, gs, list)
-		BlackSilverMoveRules.generateMoves(shogi.BlackSilver, gs, list)
-		BlackGoldMoveRules.generateMoves(shogi.BlackGold, gs, list)
-		BlackBishopMoveRules.generateMoves(shogi.BlackBishop, gs, list)
-		BlackRookMoveRules.generateMoves(shogi.BlackRook, gs, list)
+// ******************************************** //
+// ************** Move Functions ************** //
+// ******************************************** //
 
-		KingMoveRules.generateMoves(shogi.BlackKing, gs, list)
+// GenerateAllMoves generates pseudo-legal moves for the given position and adds them to the move list.
+func GenerateAllMoves(pos *shogi.Position, list *MoveList) {
+	if pos.Side == shogi.Black {
+		blackPawnMoveRules.generateMoves(shogi.BlackPawn, pos, list)
+		blackLanceMoveRules.generateMoves(shogi.BlackLance, pos, list)
+		blackKnightMoveRules.generateMoves(shogi.BlackKnight, pos, list)
+		blackSilverMoveRules.generateMoves(shogi.BlackSilver, pos, list)
+		blackGoldMoveRules.generateMoves(shogi.BlackGold, pos, list)
+		blackBishopMoveRules.generateMoves(shogi.BlackBishop, pos, list)
 
-		BlackGoldMoveRules.generateMoves(shogi.BlackPromotedPawn, gs, list)
-		BlackGoldMoveRules.generateMoves(shogi.BlackPromotedLance, gs, list)
-		BlackGoldMoveRules.generateMoves(shogi.BlackPromotedKnight, gs, list)
-		BlackGoldMoveRules.generateMoves(shogi.BlackPromotedSilver, gs, list)
-		PromotedBishopMoveRules.generateMoves(shogi.BlackPromotedBishop, gs, list)
-		PromotedRookMoveRules.generateMoves(shogi.BlackPromotedRook, gs, list)
+		blackRookHMoveRules.generateMoves(shogi.BlackRook, pos, list)
+		blackRookVMoveRules.generateMoves(shogi.BlackRook, pos, list)
+
+		kingMoveRules.generateMoves(shogi.BlackKing, pos, list)
+
+		blackGoldMoveRules.generateMoves(shogi.BlackPromotedPawn, pos, list)
+		blackGoldMoveRules.generateMoves(shogi.BlackPromotedLance, pos, list)
+		blackGoldMoveRules.generateMoves(shogi.BlackPromotedKnight, pos, list)
+		blackGoldMoveRules.generateMoves(shogi.BlackPromotedSilver, pos, list)
+
+		blackBishopMoveRules.generateMoves(shogi.BlackPromotedBishop, pos, list)
+		promotedBishopMoveRules.generateMoves(shogi.BlackPromotedBishop, pos, list)
+
+		blackRookHMoveRules.generateMoves(shogi.BlackPromotedRook, pos, list)
+		blackRookVMoveRules.generateMoves(shogi.BlackPromotedRook, pos, list)
+		promotedRookMoveRules.generateMoves(shogi.BlackPromotedRook, pos, list)
 	} else {
-		WhitePawnMoveRules.generateMoves(shogi.WhitePawn, gs, list)
-		WhiteLanceMoveRules.generateMoves(shogi.WhiteLance, gs, list)
-		WhiteKnightMoveRules.generateMoves(shogi.WhiteKnight, gs, list)
-		WhiteSilverMoveRules.generateMoves(shogi.WhiteSilver, gs, list)
-		WhiteGoldMoveRules.generateMoves(shogi.WhiteGold, gs, list)
-		WhiteBishopMoveRules.generateMoves(shogi.WhiteBishop, gs, list)
-		WhiteRookMoveRules.generateMoves(shogi.WhiteRook, gs, list)
+		whitePawnMoveRules.generateMoves(shogi.WhitePawn, pos, list)
+		whiteLanceMoveRules.generateMoves(shogi.WhiteLance, pos, list)
+		whiteKnightMoveRules.generateMoves(shogi.WhiteKnight, pos, list)
+		whiteSilverMoveRules.generateMoves(shogi.WhiteSilver, pos, list)
+		whiteGoldMoveRules.generateMoves(shogi.WhiteGold, pos, list)
+		whiteBishopMoveRules.generateMoves(shogi.WhiteBishop, pos, list)
 
-		KingMoveRules.generateMoves(shogi.WhiteKing, gs, list)
+		whiteRookHMoveRules.generateMoves(shogi.WhiteRook, pos, list)
+		whiteRookVMoveRules.generateMoves(shogi.WhiteRook, pos, list)
 
-		WhiteGoldMoveRules.generateMoves(shogi.WhitePromotedPawn, gs, list)
-		WhiteGoldMoveRules.generateMoves(shogi.WhitePromotedLance, gs, list)
-		WhiteGoldMoveRules.generateMoves(shogi.WhitePromotedKnight, gs, list)
-		WhiteGoldMoveRules.generateMoves(shogi.WhitePromotedSilver, gs, list)
-		PromotedBishopMoveRules.generateMoves(shogi.WhitePromotedBishop, gs, list)
-		PromotedRookMoveRules.generateMoves(shogi.WhitePromotedRook, gs, list)
+		kingMoveRules.generateMoves(shogi.WhiteKing, pos, list)
+
+		whiteGoldMoveRules.generateMoves(shogi.WhitePromotedPawn, pos, list)
+		whiteGoldMoveRules.generateMoves(shogi.WhitePromotedLance, pos, list)
+		whiteGoldMoveRules.generateMoves(shogi.WhitePromotedKnight, pos, list)
+		whiteGoldMoveRules.generateMoves(shogi.WhitePromotedSilver, pos, list)
+
+		whiteBishopMoveRules.generateMoves(shogi.WhitePromotedBishop, pos, list)
+		promotedBishopMoveRules.generateMoves(shogi.WhitePromotedBishop, pos, list)
+
+		whiteRookHMoveRules.generateMoves(shogi.WhitePromotedRook, pos, list)
+		whiteRookVMoveRules.generateMoves(shogi.WhitePromotedRook, pos, list)
+		promotedRookMoveRules.generateMoves(shogi.WhitePromotedRook, pos, list)
 	}
 
-	if gs.Hands[gs.Side].Count > 0 {
-		GenerateDrops(gs, list)
+	if pos.Hands[pos.Side].Count > 0 {
+		generateDrops(pos, list)
 	}
 }
 
-func GenerateDrops(gs *shogi.Position, list *MoveList) {
-	myColor := gs.Side
-	myHand := gs.Hands[myColor]
-	emptySquares := gs.BBbyColor[shogi.Black].Or(gs.BBbyColor[shogi.White]).Not()
+// ********************************************* //
+// *** Sliding/Non Sliding shared functions **** //
+// ********************************************* //
 
-	if p, n := myHand.Pawns(); n > 0 { // Warning: the no direct checkmate rule is not enforced
-		mypawns := gs.BBbyPiece[p]
-		mypawnfiles := shogi.Zero
-		for mypawns != shogi.Zero {
-			sq := shogi.Square(mypawns.Lsb())
-			mypawnfiles = mypawnfiles.Or(fileBitboards[sq.File()-1])
-			mypawns = mypawns.ClearBit(sq)
+// promoteFunc is a function type that checks promotion rules for moves.
+type promoteFunc func(from, to uint8) (can, must bool)
+
+func generateMoves(from uint8, attacks bitboard.Bitboard, pos *shogi.Position, promote promoteFunc, list *MoveList) {
+	mycolor := pos.Side
+	myopponent := mycolor.Opponent()
+
+	// generate moves for the current piece on "from"
+	for attacks != bitboard.Zero {
+		to := uint8(attacks.Lsb())
+		canPromote, mustPromote := promote(from, to)
+
+		switch {
+		case pos.BBbyColor[myopponent].Bit(uint(to)) == 1: // capture
+			captured := pos.Board[to]
+			if canPromote {
+				list.Push(NewMove(
+					MoveFlagMove|MoveFlagPromotion|MoveFlagCapture,
+					from,
+					to,
+					captured,
+				))
+			}
+			if !mustPromote {
+				list.Push(NewMove(
+					MoveFlagMove|MoveFlagCapture,
+					from,
+					to,
+					captured,
+				))
+			}
+
+		case pos.BBbyColor[mycolor].Bit(uint(to)) == 0: // empty destination
+			if canPromote {
+				list.Push(NewMove(
+					MoveFlagMove|MoveFlagPromotion,
+					from,
+					to,
+					shogi.NoPiece,
+				))
+			}
+			if !mustPromote {
+				list.Push(NewMove(
+					MoveFlagMove,
+					from,
+					to,
+					shogi.NoPiece,
+				))
+			}
 		}
-		mypawnfiles = mypawnfiles.Not()
-
-		emptySquaresResticted := emptySquares.And(noDropZones[p]).And(mypawnfiles)
-		addDrops(p, emptySquaresResticted, list)
-	}
-
-	if p, n := myHand.Lances(); n > 0 {
-		emptySquaresResticted := emptySquares.And(noDropZones[p])
-		addDrops(p, emptySquaresResticted, list)
-	}
-
-	if p, n := myHand.Knights(); n > 0 {
-		emptySquaresResticted := emptySquares.And(noDropZones[p])
-		addDrops(p, emptySquaresResticted, list)
-	}
-
-	if p, n := myHand.Silvers(); n > 0 {
-		addDrops(p, emptySquares, list)
-	}
-
-	if p, n := myHand.Golds(); n > 0 {
-		addDrops(p, emptySquares, list)
-	}
-
-	if p, n := myHand.Bishops(); n > 0 {
-		addDrops(p, emptySquares, list)
-	}
-
-	if p, n := myHand.Rooks(); n > 0 {
-		addDrops(p, emptySquares, list)
+		attacks = attacks.Clear(uint(to))
 	}
 }
 
-func addDrops(p shogi.Piece, emptySquares shogi.Bitboard, list *MoveList) {
-	for emptySquares != shogi.Zero {
-		to := shogi.Square(emptySquares.Lsb())
-		list.add(shogi.NewMove(shogi.MoveFlagDrop, 0, to, p))
-		emptySquares = emptySquares.ClearBit(to)
+// ********************************************* //
+// *************** Attacks Table *************** //
+// ********************************************* //
+
+// attacksTable is an array of bitboard indexed by square, used for non sliding pieces.
+type AttacksTable [shogi.SQUARES]bitboard.Bitboard
+
+// newAttacksTable creates a new attacksTable from an array of move directions
+func newAttacksTable(moveDirections []direction) AttacksTable {
+	var at AttacksTable
+	for sq := uint8(0); sq < shogi.SQUARES; sq++ {
+		bb := bitboard.Zero
+		for _, d := range moveDirections {
+			newsq, err := squareShift(sq, d)
+			if err != nil {
+				continue
+			}
+			bb = bb.Set(uint(newsq))
+		}
+		at[sq] = bb
+	}
+	return at
+}
+
+// SquareShift returns the target's square index after applying a direction to a starting squareIndex.
+func squareShift(sq uint8, d direction) (uint8, error) {
+	to := sq + uint8(d.rank+d.file)
+
+	// out of board
+	if to < 0 || to >= shogi.SQUARES {
+		return 0, fmt.Errorf("invalid move, out of board")
+	}
+	// when moving to East, File must decrease
+	if d.file > 0 && (shogi.SquareFile(to) >= shogi.SquareFile(sq)) {
+		return 0, fmt.Errorf("invalid move, file number should have decreased")
+	}
+	// when moving to West, File must increase
+	if d.file < 0 && (shogi.SquareFile(to) <= shogi.SquareFile(sq)) {
+		return 0, fmt.Errorf("invalid move, file number should have increased")
+	}
+	// for a pure horizontal move, File number should be the same
+	if d.file == 0 && (shogi.SquareFile(to) != shogi.SquareFile(sq)) {
+		return 0, fmt.Errorf("invalid move, should not change file number")
+	}
+
+	return to, nil
+}
+
+type direction struct {
+	rank int // direction north/east
+	file int // direction east/west
+}
+
+var origin = direction{0, 0}
+
+func (d direction) toNorth(n uint) direction {
+	return direction{
+		rank: d.rank - 9*int(n),
+		file: d.file,
 	}
 }
 
-var noDropZones = map[shogi.Piece]shogi.Bitboard{
-	shogi.BlackPawn:   {High: 0b11111111111111111, Low: 0b1111111111111111111111111111111111111111111111111111111000000000},
-	shogi.WhitePawn:   {High: 0b00000000011111111, Low: 0b1111111111111111111111111111111111111111111111111111111111111111},
-	shogi.BlackLance:  {High: 0b11111111111111111, Low: 0b1111111111111111111111111111111111111111111111111111111000000000},
-	shogi.WhiteLance:  {High: 0b00000000011111111, Low: 0b1111111111111111111111111111111111111111111111111111111111111111},
-	shogi.BlackKnight: {High: 0b11111111111111111, Low: 0b1111111111111111111111111111111111111111111111000000000000000000},
-	shogi.WhiteKnight: {High: 0b00000000000000000, Low: 0b0111111111111111111111111111111111111111111111111111111111111111},
+func (d direction) toSouth(n uint) direction {
+	return direction{
+		rank: d.rank + 9*int(n),
+		file: d.file,
+	}
 }
 
-var fileBitboards = [9]shogi.Bitboard{
-	{High: 0b10000000010000000, Low: 0b0100000000100000000100000000100000000100000000100000000100000000},
-	{High: 0b01000000001000000, Low: 0b0010000000010000000010000000010000000010000000010000000010000000},
-	{High: 0b00100000000100000, Low: 0b0001000000001000000001000000001000000001000000001000000001000000},
-	{High: 0b00010000000010000, Low: 0b0000100000000100000000100000000100000000100000000100000000100000},
-	{High: 0b00001000000001000, Low: 0b0000010000000010000000010000000010000000010000000010000000010000},
-	{High: 0b00000100000000100, Low: 0b0000001000000001000000001000000001000000001000000001000000001000},
-	{High: 0b00000010000000010, Low: 0b0000000100000000100000000100000000100000000100000000100000000100},
-	{High: 0b00000001000000001, Low: 0b0000000010000000010000000010000000010000000010000000010000000010},
-	{High: 0b00000000100000000, Low: 0b1000000001000000001000000001000000001000000001000000001000000001},
+func (d direction) toEast(n uint) direction {
+	return direction{
+		rank: d.rank,
+		file: d.file + int(n),
+	}
+}
+
+func (d direction) toWest(n uint) direction {
+	return direction{
+		rank: d.rank,
+		file: d.file - int(n),
+	}
 }

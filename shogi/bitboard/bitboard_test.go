@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2023 VinyMeuh
 // SPDX-License-Identifier: MIT
-package shogi
+package bitboard
 
 import (
 	"fmt"
@@ -48,9 +48,9 @@ func TestGetBit(t *testing.T) {
 
 	for i, tc := range tests {
 		bb := Bitboard{tc.bb[1], tc.bb[0]}
-		for j := uint(0); j < SQUARES; j++ {
+		for j := uint(0); j < 81; j++ {
 			t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
-				v := bb.GetBit(Square(j))
+				v := bb.Bit(j)
 				inGet1 := slices.Contains(tc.gets1, j)
 				switch {
 				case inGet1 && v == 0:
@@ -164,33 +164,4 @@ func TestLsb(t *testing.T) {
 		})
 	}
 
-}
-
-func TestRShift(t *testing.T) {
-	tests := []struct { //nolint:govet
-		bb       [2]uint64 // high, low
-		shift    uint
-		expected [2]uint64 // high, low
-	}{
-		{
-			[2]uint64{0b00001100000000001, 0b1000000001110000000001000000000000000000100000001000000000010001},
-			1,
-			[2]uint64{0b00000110000000000, 0b1100000000111000000000100000000000000000010000000100000000001000},
-		},
-		{
-			[2]uint64{0b10001100000000001, 0b1000000001110000000001000000000000000000100000001000000000010001},
-			16,
-			[2]uint64{0b00000000000000001, 0b0001100000000001100000000111000000000100000000000000000010000000},
-		},
-	}
-
-	for i, tc := range tests {
-		t.Run(fmt.Sprintf("Test %02d", i+1), func(t *testing.T) {
-			bb := Bitboard{tc.bb[1], tc.bb[0]}.RShift(tc.shift)
-			expected := Bitboard{tc.expected[1], tc.expected[0]}
-			if expected != bb {
-				t.Fatalf(fatalfFormat, expected, bb)
-			}
-		})
-	}
 }

@@ -1,16 +1,18 @@
 ---
-name: Tests
-
 on:
   push:
+    tags-ignore:
+      - v*
   pull_request:
     branches:
       - main
   workflow_dispatch:
 
+name: Tests
+
 jobs:
-  gotest:
-    name: Go Tests
+  tests:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +22,16 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: './go.mod'
-      - name: Unit Tests
-        run: go test -coverprofile=coverage.out -covermode=count ./shogi/... ./engine/...
-
+      - name: Run tests for shogi package
+        run: |
+          go test -covermode=count -coverprofile=coverage.out \
+            -coverpkg=github.com/vinymeuh/hifumi/shogi ./shogi ./tests_perft
+      - name: Retrieve total coverage for shogi package
+        run: |
+          totalCoverage=$(go tool cover -func=coverage.out | awk '/total:/ {print $3}')
+          echo "Current test coverage: $totalCoverage"
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

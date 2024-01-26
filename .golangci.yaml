@@ -10,6 +10,9 @@ linters:
     - unused
 
 linters-settings:
+  gocritic:
+    disabled-checks:
+      - exitAfterDefer
   govet:
     enable-all: true
   revive:
@@ -38,6 +41,3 @@ linters-settings:
       - name: unused-parameter
       - name: unreachable-code
       - name: redefines-builtin-id
-  exhaustruct:
-    exclude:
-      - '.*\.Shift$'

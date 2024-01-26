@@ -1,0 +1,16 @@
+{
+    "startpos": "lnsk1gsnl/1r2g4/p1pp1p1pp/4p1p2/4b4/P1P3P2/L1NPPPnPP/1+p2GS1+b1/3G1KS1L b rp 29",
+    "moves": 2,
+    "drops": 0,
+    "promotions": 0,
+    "tests": [
+        {
+            "depth": 1,
+            "nodes": 2,
+            "moves": {
+                "4h3g": 1,
+                "4i5i": 1           
+            }
+        }
+    ]
+}
