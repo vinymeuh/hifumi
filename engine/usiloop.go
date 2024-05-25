@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	EngineVersion = "0.0"
+	EngineVersion = "0.1"
 )
 
 // ==================================== //

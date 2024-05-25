@@ -4,7 +4,7 @@ package bitboard
 
 import (
 	"fmt"
-	"math"
+	"math/bits"
 )
 
 // A bitboard is a binary representation that encodes all the squares on the board.
@@ -84,7 +84,6 @@ func (b Bitboard) Or(other Bitboard) Bitboard {
 		low:  b.low | other.low,
 		high: b.high | other.high,
 	}
-
 }
 
 // Not returns a new bitboard with the bitwise NOT operation applied.
@@ -98,10 +97,10 @@ func (b Bitboard) Not() Bitboard {
 // Lsb returns the index of the first bit that is turned on from the LSB side.
 func (b Bitboard) Lsb() int {
 	if b.low > 0 {
-		return int(math.Log2(float64(b.low & -b.low)))
+		return bits.TrailingZeros64(b.low)
 	}
 	if b.high > 0 {
-		return 64 + int(math.Log2(float64(b.high&-b.high)))
+		return 64 + bits.TrailingZeros64(b.high)
 	}
 	return -1
 }
