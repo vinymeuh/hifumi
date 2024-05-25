@@ -18,27 +18,18 @@ run: build
 	@./hifumi
 .PHONY: run
 
-## test: run all tests
+## test: run go tests
 test:
 	go test ./...
 .PHONY: test
 
+## test/debug: run movegen debug tests
+test/debug:
+	../perfttester/perfttester -d debug hifumi
+.PHONY: test/debug
+
 ## test/perft: run perft tests
 test/perft:
-	go test ./shogi ./tests_perft -covermode=count -coverpkg=github.com/vinymeuh/hifumi/shogi 
+	../perfttester/perfttester hifumi
 .PHONY: test/perft
 
-## bench/perft: run perft benchmarks
-bench/perft:
-	go test ./tests_perft -bench=. -run=^# -benchmem -memprofile memprofile.out -cpuprofile profile.out
-.PHONY: bench/perft
-
-## bench/perft/cpu: run perft benchmarks then pprof cpu usage 
-bench/perft/cpu: bench/perft
-	go tool pprof profile.out
-.PHONY: bench/perft/cpu
-
-## bench/perft/mem: run perft benchmarks then pprof memory usage 
-bench/perft/mem: bench/perft
-	go tool pprof memprofile.out
-.PHONY: bench/perft/mem

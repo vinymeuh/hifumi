@@ -56,7 +56,7 @@ func generateDrops(gs *shogi.Position, list *MoveList) {
 func addDrops(p shogi.Piece, emptySquares bitboard.Bitboard, list *MoveList) {
 	for emptySquares != bitboard.Zero {
 		to := uint8(emptySquares.Lsb())
-		list.Push(NewMove(MoveFlagDrop, 0, to, p))
+		list.Push(shogi.NewMove(shogi.MoveFlagDrop, 0, to, p))
 		emptySquares = emptySquares.Clear(uint(to))
 	}
 }

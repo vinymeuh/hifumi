@@ -1,0 +1,9 @@
+engines:
+  - name: hifumi
+    path: ./hifumi
+
+dirtests:
+  - name: perft
+    path: ../perfttester/testdata/perft
+  - name: debug 
+    path: ../perfttester/testdata/debug

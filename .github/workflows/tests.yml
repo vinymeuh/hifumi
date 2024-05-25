@@ -25,7 +25,7 @@ jobs:
       - name: Run tests for shogi package
         run: |
           go test -covermode=count -coverprofile=coverage.out \
-            -coverpkg=github.com/vinymeuh/hifumi/shogi ./shogi ./tests_perft
+            -coverpkg=github.com/vinymeuh/hifumi/shogi ./shogi
       - name: Retrieve total coverage for shogi package
         run: |
           totalCoverage=$(go tool cover -func=coverage.out | awk '/total:/ {print $3}')

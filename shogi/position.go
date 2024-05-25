@@ -61,3 +61,75 @@ func (p *Position) ClearBitboards(piece Piece, square uint8) {
 	p.BBbyColor[piece.Color()] = p.BBbyColor[piece.Color()].Clear(uint(square))
 	p.BBbyPiece[piece] = p.BBbyPiece[piece].Clear(uint(square))
 }
+
+// DoMove updates Position based on provided Move.
+func (p *Position) DoMove(m Move) {
+	flags, from, to, mPiece := m.destructure()
+	switch flags {
+	case MoveFlagDrop:
+		piece := mPiece
+		p.SetPiece(piece, to)
+		p.Hands[p.Side].Pop(piece)
+	case MoveFlagMove:
+		piece := p.Board[from]
+		p.ClearPiece(piece, from)
+		p.SetPiece(piece, to)
+	case MoveFlagMove | MoveFlagPromotion:
+		piece := p.Board[from]
+		p.ClearPiece(piece, from)
+		p.SetPiece(piece.Promote(), to)
+	case MoveFlagMove | MoveFlagCapture:
+		piece := p.Board[from]
+		captured := p.Board[to]
+		p.ClearPiece(piece, from)
+		p.ClearBitboards(captured, to)
+		p.SetPiece(piece, to)
+		p.Hands[p.Side].Push(captured.ToOpponentHand())
+	case MoveFlagMove | MoveFlagCapture | MoveFlagPromotion:
+		piece := p.Board[from]
+		captured := p.Board[to]
+		p.ClearPiece(piece, from)
+		p.ClearBitboards(captured, to)
+		p.SetPiece(piece.Promote(), to)
+		p.Hands[p.Side].Push(captured.ToOpponentHand())
+	}
+
+	p.Ply++
+	p.Side = p.Side.Opponent()
+}
+
+// UndoMove updates Position based on provided Move.
+func (p *Position) UndoMove(m Move) {
+	flags, from, to, mPiece := m.destructure()
+	switch flags {
+	case MoveFlagDrop:
+		piece := mPiece
+		p.ClearPiece(piece, to)
+		p.Hands[p.Side.Opponent()].Push(piece)
+	case MoveFlagMove:
+		piece := p.Board[to]
+		p.ClearPiece(piece, to)
+		p.SetPiece(piece, from)
+	case MoveFlagMove | MoveFlagPromotion:
+		piece := p.Board[to]
+		p.ClearPiece(piece, to)
+		p.SetPiece(piece.UnPromote(), from)
+	case MoveFlagMove | MoveFlagCapture:
+		piece := p.Board[to]
+		captured := mPiece
+		p.SetPiece(piece, from)
+		p.ClearBitboards(piece, to)
+		p.SetPiece(captured, to)
+		p.Hands[p.Side.Opponent()].Pop(captured.ToOpponentHand())
+	case MoveFlagMove | MoveFlagCapture | MoveFlagPromotion:
+		piece := p.Board[to]
+		captured := mPiece
+		p.SetPiece(piece.UnPromote(), from)
+		p.ClearBitboards(piece, to)
+		p.SetPiece(captured, to)
+		p.Hands[p.Side.Opponent()].Pop(captured.ToOpponentHand())
+	}
+
+	p.Ply--
+	p.Side = p.Side.Opponent()
+}

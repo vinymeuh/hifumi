@@ -32,17 +32,17 @@ func TestSquareIndexShift(t *testing.T) {
 func TestApplyUnapplyMove(t *testing.T) {
 	tests := []struct { //nolint:govet
 		startPos string
-		move     Move
+		move     shogi.Move
 		expected string
 	}{
 		{
 			startPos: shogi.StartPos,
-			move:     Move(0),
+			move:     shogi.Move(0),
 			expected: "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL w - 2",
 		},
 		{
 			startPos: shogi.StartPos,
-			move:     NewMove(MoveFlagMove, 60, 51, 0),
+			move:     shogi.NewMove(shogi.MoveFlagMove, 60, 51, 0),
 			expected: "lnsgkgsnl/1r5b1/ppppppppp/9/9/6P2/PPPPPP1PP/1B5R1/LNSGKGSNL w - 2",
 		},
 	}
@@ -53,11 +53,11 @@ func TestApplyUnapplyMove(t *testing.T) {
 			if err != nil {
 				t.Fatalf("NewFromSfen: %v", err)
 			}
-			DoMove(g, tc.move)
+			g.DoMove(tc.move)
 			if g.Sfen() != tc.expected {
 				t.Fatalf("Apply: expected='%s', got='%s'", tc.expected, g.Sfen())
 			}
-			UndoMove(g, tc.move)
+			g.UndoMove(tc.move)
 			if g.Sfen() != tc.startPos {
 				t.Fatalf("Apply: expected='%s', got='%s'", tc.startPos, g.Sfen())
 			}

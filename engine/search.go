@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/vinymeuh/hifumi/shogi"
 	"github.com/vinymeuh/hifumi/shogi/movegen"
 )
 
@@ -30,7 +31,7 @@ func newSeachConstraints() searchConstraints {
 }
 
 type principalVariation struct {
-	line [maxSearchDepth]movegen.Move
+	line [maxSearchDepth]shogi.Move
 }
 
 func think(constraints searchConstraints) {
@@ -84,19 +85,19 @@ func iFeelLucky(ctx context.Context, constraints searchConstraints, done chan st
 	var moves movegen.MoveList
 	movegen.GenerateAllMoves(enginePosition, &moves)
 
-	var m movegen.Move
+	var m shogi.Move
 	for {
 		n := rand.Intn(moves.Count)
 		m = moves.Moves[n]
-		moveIsValid := movegen.DoMove(enginePosition, m)
-		movegen.UndoMove(enginePosition, m)
-		if moveIsValid {
+		enginePosition.DoMove(m)
+		enginePosition.UndoMove(m)
+		if len(movegen.Checkers(enginePosition, enginePosition.Side)) == 0 {
 			break
 		}
 		moves.Moves[n] = moves.Moves[moves.Count-1]
 		moves.Count--
 		if moves.Count == 0 {
-			m = movegen.Move(0)
+			m = shogi.Move(0)
 			break
 		}
 	}

@@ -13,38 +13,11 @@ import (
 
 	"github.com/vinymeuh/hifumi/shogi"
 	"github.com/vinymeuh/hifumi/shogi/movegen"
+	"github.com/vinymeuh/hifumi/shogi/perft"
 )
 
 const (
-	EngineName    = "Hifumi"
 	EngineVersion = "0.0"
-	EngineAuthor  = "VinyMeuh"
-
-	EngineBanner = `
-██   ██ ██ ███████ ██    ██ ███    ███ ██ 
-██   ██ ██ ██      ██    ██ ████  ████ ██ 
-███████ ██ █████   ██    ██ ██ ████ ██ ██ 
-██   ██ ██ ██      ██    ██ ██  ██  ██ ██ 
-██   ██ ██ ██       ██████  ██      ██ ██ 
-
-`
-
-	EngineHelp = `
-Principal Commands:
- position       Set up the position as described by SFEN and optional moves
- go             Start searching from current position
- stop           Stop searching as soon as possible
- perft          Run perft test up to depth
- divide         Run divide perft test up to depth
- quit           Quit the program
-
-For example:
-  position startpos moves 9g9f
-  go depth 5
-
-Use "d" to display current state of the game.
-
-`
 )
 
 // ==================================== //
@@ -64,7 +37,7 @@ var (
 		pv            principalVariation
 	}{
 		stopRequested: nil,
-		pv:            principalVariation{line: [1]movegen.Move{0}},
+		pv:            principalVariation{line: [1]shogi.Move{0}},
 	}
 
 	enginePosition *shogi.Position
@@ -73,10 +46,8 @@ var (
 // ================================== //
 // ============ Usi Loop ============ //
 // ================================== //
-func UsiLoop() {
-	fmt.Print(EngineBanner)
-	fmt.Println("Version:", EngineVersion)
-	fmt.Print(EngineHelp)
+func Start() {
+	fmt.Printf("Hifumi version %s (☗_☗), :? for help\n", EngineVersion)
 
 	enginePosition, _ = shogi.NewPositionFromSfen(shogi.StartPos)
 
@@ -90,11 +61,16 @@ func UsiLoop() {
 		cmd := strings.Fields(text)[0]
 		switch cmd {
 		case "usi":
-			usiHandler()
+			fmt.Printf("id name Hifumi %s\n", EngineVersion)
+			fmt.Println("id author vinymeuh")
+			for name, option := range engineOptions {
+				fmt.Println("option name", name, option)
+			}
+			fmt.Println("usiok")
 		case "usinewgame":
-			usinewgameHandler()
+			enginePosition, _ = shogi.NewPositionFromSfen(shogi.StartPos)
 		case "isready":
-			isreadyHandler()
+			fmt.Println("readyok")
 		case "setoption":
 			setoptionHandler(strings.Fields(text))
 		case "position":
@@ -110,15 +86,17 @@ func UsiLoop() {
 			}
 		case "quit":
 			return
-		// Non USI commands
 		case "perft":
 			perftHandler(strings.Fields(text), false)
 		case "divide":
 			perftHandler(strings.Fields(text), true)
-		case "d":
+		case ":d":
 			displayHandler()
+		case ":?":
+			// helpHandler()
+			fmt.Println("TODO")
 		default:
-			fmt.Printf("Unknown command: %s\n", text)
+			fmt.Printf("Unknown command '%s', :? for help\n", text)
 		}
 	}
 }
@@ -126,22 +104,6 @@ func UsiLoop() {
 // =================================== //
 // ======== Command handlers ========= //
 // =================================== //
-func usiHandler() {
-	fmt.Printf("id name %s v%s\nid author %s\n", EngineName, EngineVersion, EngineAuthor)
-	for name, option := range engineOptions {
-		fmt.Println("option name", name, option)
-	}
-	fmt.Println("usiok")
-}
-
-func usinewgameHandler() {
-	enginePosition, _ = shogi.NewPositionFromSfen(shogi.StartPos)
-}
-
-func isreadyHandler() {
-	fmt.Println("readyok")
-}
-
 func setoptionHandler(args []string) {
 	switch {
 	case len(args) == 3 && args[1] == "name":
@@ -173,7 +135,7 @@ func positionHandler(args []string) {
 	}
 
 	// find string 'moves' in command args
-	var movesIndex = 2 // position of 'moves' string in args. Can't be less than 2.
+	movesIndex := 2 // position of 'moves' string in args. Can't be less than 2.
 	for ; movesIndex < len(args); movesIndex++ {
 		if args[movesIndex] == "moves" {
 			break
@@ -291,7 +253,7 @@ func goHandler(args []string) {
 func perftHandler(args []string, divide bool) {
 	depth, _ := strconv.Atoi(args[1])
 
-	result := Perft(enginePosition, depth)
+	result := perft.Compute(enginePosition, depth)
 	moves := make([]string, 0, result.MovesCount)
 	for m := range result.Moves {
 		moves = append(moves, m.String())
@@ -308,7 +270,7 @@ func perftHandler(args []string, divide bool) {
 
 	fmt.Printf("\nMoves           : %d\n", result.MovesCount)
 	fmt.Printf("Nodes searched  : %d\n", result.NodesCount)
-	fmt.Printf("Duration        : %.3fs\n", result.Duration.Seconds())
+	fmt.Printf("Duration        : %s\n", result.Duration)
 	fmt.Printf("NPS             : %.0f\n\n", float64(result.NodesCount)/result.Duration.Seconds())
 }
 
@@ -356,15 +318,15 @@ func displayHandler() {
 
 // applyUsiMove updates Position based on provided USI move string.
 // Move must be valid otherwise returns an error.
-func applyUsiMove(pos *shogi.Position, str string) (movegen.Move, error) {
+func applyUsiMove(pos *shogi.Position, str string) (shogi.Move, error) {
 	var list movegen.MoveList
 	movegen.GenerateAllMoves(pos, &list)
 	for i := 0; i < list.Count; i++ {
 		m := list.Moves[i]
 		if m.String() == str {
-			movegen.DoMove(pos, m)
+			pos.DoMove(m)
 			return m, nil
 		}
 	}
-	return movegen.Move(0), fmt.Errorf("invalid move")
+	return shogi.Move(0), fmt.Errorf("invalid move")
 }

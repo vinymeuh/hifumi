@@ -14,11 +14,11 @@ const maxMoves = 512
 
 // MoveList is a list of Moves with a fixed maximum size.
 type MoveList struct {
-	Moves [maxMoves]Move // Holds the generated moves
-	Count int            // The current count of moves in the list
+	Moves [maxMoves]shogi.Move // Holds the generated moves
+	Count int                  // The current count of moves in the list
 }
 
-func (ml *MoveList) Push(move Move) {
+func (ml *MoveList) Push(move shogi.Move) {
 	ml.Moves[ml.Count] = move
 	ml.Count++
 	if ml.Count == maxMoves {
@@ -107,16 +107,16 @@ func generateMoves(from uint8, attacks bitboard.Bitboard, pos *shogi.Position, p
 		case pos.BBbyColor[myopponent].Bit(uint(to)) == 1: // capture
 			captured := pos.Board[to]
 			if canPromote {
-				list.Push(NewMove(
-					MoveFlagMove|MoveFlagPromotion|MoveFlagCapture,
+				list.Push(shogi.NewMove(
+					shogi.MoveFlagMove|shogi.MoveFlagPromotion|shogi.MoveFlagCapture,
 					from,
 					to,
 					captured,
 				))
 			}
 			if !mustPromote {
-				list.Push(NewMove(
-					MoveFlagMove|MoveFlagCapture,
+				list.Push(shogi.NewMove(
+					shogi.MoveFlagMove|shogi.MoveFlagCapture,
 					from,
 					to,
 					captured,
@@ -125,16 +125,16 @@ func generateMoves(from uint8, attacks bitboard.Bitboard, pos *shogi.Position, p
 
 		case pos.BBbyColor[mycolor].Bit(uint(to)) == 0: // empty destination
 			if canPromote {
-				list.Push(NewMove(
-					MoveFlagMove|MoveFlagPromotion,
+				list.Push(shogi.NewMove(
+					shogi.MoveFlagMove|shogi.MoveFlagPromotion,
 					from,
 					to,
 					shogi.NoPiece,
 				))
 			}
 			if !mustPromote {
-				list.Push(NewMove(
-					MoveFlagMove,
+				list.Push(shogi.NewMove(
+					shogi.MoveFlagMove,
 					from,
 					to,
 					shogi.NoPiece,

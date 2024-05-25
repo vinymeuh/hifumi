@@ -7,12 +7,13 @@ import (
 	"github.com/vinymeuh/hifumi/shogi/bitboard"
 )
 
-func Attackers(gs *shogi.Position, sq uint8) []uint8 {
-	myside := gs.Board[sq].Color()
-	gs.Side = myside.Opponent()
+func Attackers(position *shogi.Position, sq uint8) []uint8 {
+	initialSide := position.Side
+	myside := position.Board[sq].Color()
+	position.Side = myside.Opponent()
 
 	var moves MoveList
-	GenerateAllMoves(gs, &moves)
+	GenerateAllMoves(position, &moves)
 	attackersMap := make(map[uint8]struct{}, moves.Count)
 
 	for i := 0; i < moves.Count; i++ {
@@ -26,20 +27,20 @@ func Attackers(gs *shogi.Position, sq uint8) []uint8 {
 		attackers = append(attackers, k)
 	}
 
-	gs.Side = myside
+	position.Side = initialSide
 	return attackers
 }
 
-func Checkers(gs *shogi.Position, side shogi.Color) []uint8 {
+func Checkers(position *shogi.Position, defender shogi.Color) []uint8 {
 	var bbking bitboard.Bitboard
-	if side == shogi.Black {
-		bbking = gs.BBbyPiece[shogi.BlackKing]
+	if defender == shogi.Black {
+		bbking = position.BBbyPiece[shogi.BlackKing]
 	} else {
-		bbking = gs.BBbyPiece[shogi.WhiteKing]
+		bbking = position.BBbyPiece[shogi.WhiteKing]
 	}
 	if bbking == bitboard.Zero { // don't crash if no king
 		return []uint8{}
 	}
-	squares := Attackers(gs, uint8(bbking.Lsb()))
+	squares := Attackers(position, uint8(bbking.Lsb()))
 	return squares
 }
